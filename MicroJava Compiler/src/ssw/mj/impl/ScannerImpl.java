@@ -4,6 +4,7 @@ import ssw.mj.Errors;
 import ssw.mj.Scanner;
 import ssw.mj.Token;
 
+import java.io.IOException;
 import java.io.Reader;
 
 import static ssw.mj.Token.Kind.*;
@@ -206,7 +207,6 @@ public final class ScannerImpl extends Scanner {
             }
         }
 
-
         return null;
     }
 
@@ -226,7 +226,17 @@ public final class ScannerImpl extends Scanner {
     Recognizes line breaks: LF and CR LF
     Keeps the position in the fields line and col  */
     void nextCh() {
-        //TODO
+        try {
+            ch = (char) in.read();
+            if (ch == '\n') {
+                col = 0;
+                line++;
+            } else if (ch != EOF) {
+                col++;
+            }
+        } catch (IOException e) {
+            ch = EOF;
+        }
     }
 
     /*
