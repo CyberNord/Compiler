@@ -144,15 +144,18 @@ public final class ScannerImpl extends Scanner {
                     } else {
                         error(t, Errors.Message.INVALID_CHAR, ch);
                     }
-                    //OR
+                    break;
+                //OR
                 case '|':
                     nextCh();
                     if (ch == '|') {
                         t.kind = or;
+
                     } else {
                         error(t, Errors.Message.INVALID_CHAR, ch);
                     }
-                    // semicolon
+                    break;
+                // semicolon
                 case ';':
                     t.kind = semicolon;
                     next();
