@@ -2,23 +2,51 @@ package ssw.mj.impl;
 
 import ssw.mj.Scanner;
 import ssw.mj.Token;
+
 import java.io.Reader;
+
+import static ssw.mj.Token.Kind.none;
 
 public final class ScannerImpl extends Scanner {
 
-    // TODO Exercise 2: implementation of scanner
+    // Exercise 2: implementation of scanner
 
+    // ToDo: not sure here
     public ScannerImpl(Reader r) {
         super(r);
-        // TODO
+        in = r;
+        line = 1;
+        col = 0;
+        nextCh();
     }
 
     /**
      * Returns next token. To be used by parser. */
     @Override
     public Token next() {
-        // TODO
-    	return null;
+
+        // skip blanks, tabs, eols
+        while (ch <= ' ') {
+            nextCh();
+        }
+
+        Token t = new Token(none, line, col);
+        switch (ch) {
+
+        }
+
+
+        return null;
+    }
+
+    // checks if char is a-z or A-Z
+    boolean isLetter(char c) {
+        return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z';
+    }
+
+    //checks if char is 0-9
+    boolean isNumber(char c) {
+        return '0' <= c && c <= '9';
     }
 
     /*
@@ -26,7 +54,7 @@ public final class ScannerImpl extends Scanner {
     or EOF at end of file
     Recognizes line breaks: LF and CR LF
     Keeps the position in the fields line and col  */
-    void nextCh(){
+    void nextCh() {
         //TODO
     }
 
@@ -48,11 +76,9 @@ public final class ScannerImpl extends Scanner {
     }
 
     /*
-    –Überliest geschachtelte Kommentare
-    –ch enthält anschließend das Zeichen nach dem Kommentar
-     */
+    Skips nested comments
+    ch then contains the character after the comment */
     void skipComment(Token t){
         //TODO
     }
-
 }
