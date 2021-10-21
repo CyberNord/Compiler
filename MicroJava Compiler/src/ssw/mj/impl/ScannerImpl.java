@@ -1,5 +1,6 @@
 package ssw.mj.impl;
 
+import ssw.mj.Errors;
 import ssw.mj.Scanner;
 import ssw.mj.Token;
 
@@ -38,58 +39,118 @@ public final class ScannerImpl extends Scanner {
             readNumber(t);
         } else {
             switch (ch) {
+                // minus
                 case '+':
                     nextCh();
                     if (ch == '+') {
                         t.kind = pplus;
+                        nextCh();
                     } else if (ch == '=') {
                         t.kind = plusas;
+                        nextCh();
                     } else {
                         t.kind = plus;
                     }
                     break;
+                // plus
                 case '-':
                     nextCh();
                     if (ch == '-') {
                         t.kind = mminus;
+                        nextCh();
                     } else if (ch == '=') {
                         t.kind = minusas;
+                        nextCh();
                     } else {
                         t.kind = minus;
                     }
                     break;
+                // multiplier
                 case '*':
                     nextCh();
                     if (ch == '=') {
                         t.kind = timesas;
+                        nextCh();
                     } else {
                         t.kind = times;
                     }
                     break;
+                // divide
                 case '/':
                     nextCh();
                     if (ch == '=') {
                         t.kind = slashas;
+                        nextCh();
                     } else {
                         t.kind = slash;
                     }
                     break;
+                // percent
                 case '%':
                     nextCh();
                     if (ch == '=') {
                         t.kind = remas;
+                        nextCh();
                     } else {
                         t.kind = rem;
                     }
                     break;
+                // assign
                 case '=':
                     nextCh();
                     if (ch == '=') {
                         t.kind = eql;
+                        nextCh();
                     } else {
                         t.kind = assign;
                     }
                     break;
+                // exclamation mark
+                case '!':
+                    nextCh();
+                    if (ch == '=') {
+                        t.kind = neq;
+                        nextCh();
+                    } else {
+                        error(t, Errors.Message.INVALID_CHAR, ch);
+                    }
+                    break;
+                // lesser
+                case '<':
+                    nextCh();
+                    if (ch == '=') {
+                        t.kind = leq;
+                        nextCh();
+                    } else {
+                        t.kind = lss;
+                    }
+                    break;
+                // greater
+                case '>':
+                    nextCh();
+                    if (ch == '=') {
+                        t.kind = geq;
+                        nextCh();
+                    } else {
+                        t.kind = gtr;
+                    }
+                    break;
+                //AND
+                case '&':
+                    nextCh();
+                    if (ch == '&') {
+                        t.kind = and;
+                    } else {
+                        error(t, Errors.Message.INVALID_CHAR, ch);
+                    }
+                    //OR
+                case '|':
+                    nextCh();
+                    if (ch == '|') {
+                        t.kind = or;
+                    } else {
+                        error(t, Errors.Message.INVALID_CHAR, ch);
+                    }
             }
         }
 
