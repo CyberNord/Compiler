@@ -5,7 +5,7 @@ import ssw.mj.Token;
 
 import java.io.Reader;
 
-import static ssw.mj.Token.Kind.none;
+import static ssw.mj.Token.Kind.*;
 
 public final class ScannerImpl extends Scanner {
 
@@ -29,10 +29,68 @@ public final class ScannerImpl extends Scanner {
         while (ch <= ' ') {
             nextCh();
         }
-
         Token t = new Token(none, line, col);
-        switch (ch) {
-
+        if (isLetter(ch)) {
+            t.kind = ident;
+            readName(t);
+        } else if (isNumber(ch)) {
+            t.kind = number;
+            readNumber(t);
+        } else {
+            switch (ch) {
+                case '+':
+                    nextCh();
+                    if (ch == '+') {
+                        t.kind = pplus;
+                    } else if (ch == '=') {
+                        t.kind = plusas;
+                    } else {
+                        t.kind = plus;
+                    }
+                    break;
+                case '-':
+                    nextCh();
+                    if (ch == '-') {
+                        t.kind = mminus;
+                    } else if (ch == '=') {
+                        t.kind = minusas;
+                    } else {
+                        t.kind = minus;
+                    }
+                    break;
+                case '*':
+                    nextCh();
+                    if (ch == '=') {
+                        t.kind = timesas;
+                    } else {
+                        t.kind = times;
+                    }
+                    break;
+                case '/':
+                    nextCh();
+                    if (ch == '=') {
+                        t.kind = slashas;
+                    } else {
+                        t.kind = slash;
+                    }
+                    break;
+                case '%':
+                    nextCh();
+                    if (ch == '=') {
+                        t.kind = remas;
+                    } else {
+                        t.kind = rem;
+                    }
+                    break;
+                case '=':
+                    nextCh();
+                    if (ch == '=') {
+                        t.kind = eql;
+                    } else {
+                        t.kind = assign;
+                    }
+                    break;
+            }
         }
 
 
