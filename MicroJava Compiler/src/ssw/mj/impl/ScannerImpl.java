@@ -310,7 +310,39 @@ public final class ScannerImpl extends Scanner {
 
     //Reads a character constant
     void readCharConst(Token t){
-        //TODO
+        t.kind = charConst;
+        nextCh();
+
+        switch (ch) {
+            case LF:
+                error(t, ILLEGAL_LINE_END);
+                nextCh();
+                return;
+            case '\'':
+                error(t, EMPTY_CHARCONST, ch);
+                return;
+            case '\\':
+                nextCh();
+                switch (ch) {
+                    case 'n':
+                        t.val = '\n';
+                        break;
+                    case '\'':
+                        t.val = '\'';
+                        break;
+                    default:
+                        error(t, UNDEFINED_ESCAPE, ch);
+                }
+                break;
+            default:
+                t.val = ch;
+        }
+        nextCh();
+        if (ch == '\'') {
+            nextCh();
+        } else {
+            error(t, MISSING_QUOTE, ch);
+        }
     }
 
     /*
