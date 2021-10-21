@@ -151,6 +151,58 @@ public final class ScannerImpl extends Scanner {
                     } else {
                         error(t, Errors.Message.INVALID_CHAR, ch);
                     }
+                    // semicolon
+                case ';':
+                    t.kind = semicolon;
+                    next();
+                    break;
+                // comma
+                case ',':
+                    t.kind = comma;
+                    next();
+                    break;
+                // dot(s)
+                case '.':
+                    next();
+                    if (ch == '.') {
+                        next();
+                        if (ch == '.') {
+                            t.kind = ppperiod;
+                            next();
+                        } else {
+                            t.kind = pperiod;
+                        }
+                    } else {
+                        t.kind = period;
+                    }
+                    break;
+                //round bracket
+                case '(':
+                    t.kind = lpar;
+                    next();
+                    break;
+                case ')':
+                    t.kind = rpar;
+                    next();
+                    break;
+                //square bracket
+                case '[':
+                    t.kind = lbrack;
+                    next();
+                    break;
+                case ']':
+                    t.kind = rbrack;
+                    next();
+                    break;
+                //curved bracket
+                case '{':
+                    t.kind = lbrace;
+                    next();
+                    break;
+                case '}':
+                    t.kind = rbrace;
+                    next();
+                    break;
             }
         }
 
