@@ -405,6 +405,9 @@ public final class ScannerImpl extends Scanner {
     Skips nested comments
     ch then contains the character after the comment */
     void skipComment(Token t) {
+        // Todo: Comments in general :
+        //        - counter does not work
+        //        - error returns value of wrong scope
         int counter = 1;
         nextCh();
         while (counter > 0) {
