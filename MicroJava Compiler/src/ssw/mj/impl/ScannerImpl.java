@@ -1,22 +1,19 @@
 package ssw.mj.impl;
 
-import ssw.mj.Errors;
 import ssw.mj.Scanner;
 import ssw.mj.Token;
 
 import java.io.IOException;
 import java.io.Reader;
 
+import static ssw.mj.Errors.Message.INVALID_CHAR;
 import static ssw.mj.Token.Kind.*;
 
 public final class ScannerImpl extends Scanner {
 
     // Exercise 2: implementation of scanner
-
-    // ToDo: not sure here
     public ScannerImpl(Reader r) {
         super(r);
-        in = r;
         line = 1;
         col = 0;
         nextCh();
@@ -26,7 +23,6 @@ public final class ScannerImpl extends Scanner {
      * Returns next token. To be used by parser. */
     @Override
     public Token next() {
-
         // skip blanks, tabs, eols
         while (ch <= ' ') {
             nextCh();
@@ -113,7 +109,7 @@ public final class ScannerImpl extends Scanner {
                         t.kind = neq;
                         nextCh();
                     } else {
-                        error(t, Errors.Message.INVALID_CHAR, ch);
+                        error(t, INVALID_CHAR, ch);
                     }
                     break;
                 // lesser
@@ -142,7 +138,7 @@ public final class ScannerImpl extends Scanner {
                     if (ch == '&') {
                         t.kind = and;
                     } else {
-                        error(t, Errors.Message.INVALID_CHAR, ch);
+                        error(t, INVALID_CHAR, ch);
                     }
                     break;
                 //OR
@@ -152,27 +148,28 @@ public final class ScannerImpl extends Scanner {
                         t.kind = or;
 
                     } else {
-                        error(t, Errors.Message.INVALID_CHAR, ch);
+                        error(t, INVALID_CHAR, ch);
                     }
                     break;
                 // semicolon
                 case ';':
                     t.kind = semicolon;
-                    next();
+                    nextCh();
                     break;
                 // comma
                 case ',':
                     t.kind = comma;
-                    next();
+                    nextCh();
                     break;
                 // dot(s)
                 case '.':
-                    next();
+                    nextCh();
+                    ;
                     if (ch == '.') {
-                        next();
+                        nextCh();
                         if (ch == '.') {
                             t.kind = ppperiod;
-                            next();
+                            nextCh();
                         } else {
                             t.kind = pperiod;
                         }
@@ -183,30 +180,33 @@ public final class ScannerImpl extends Scanner {
                 //round bracket
                 case '(':
                     t.kind = lpar;
-                    next();
+                    nextCh();
                     break;
                 case ')':
                     t.kind = rpar;
-                    next();
+                    nextCh();
                     break;
                 //square bracket
                 case '[':
                     t.kind = lbrack;
-                    next();
+                    nextCh();
                     break;
                 case ']':
                     t.kind = rbrack;
-                    next();
+                    nextCh();
                     break;
                 //curved bracket
                 case '{':
                     t.kind = lbrace;
-                    next();
+                    nextCh();
                     break;
                 case '}':
                     t.kind = rbrace;
-                    next();
+                    nextCh();
                     break;
+                default:
+                    error(t, INVALID_CHAR, ch);
+                    nextCh();
             }
         }
 
