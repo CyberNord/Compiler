@@ -16,10 +16,10 @@ public final class ScannerImpl extends Scanner {
 
     static {
         LABELS = new HashMap<>();
-//        identifier.put("none", none);
-//        identifier.put("identifier", ident);
-//        identifier.put("number", number);
-//        identifier.put("character constant", charConst);
+//        LABELS.put("none", none);
+//        LABELS.put("identifier", ident);
+//        LABELS.put("number", number);
+//        LABELS.put("character constant", charConst);
         LABELS.put("break", break_);
         LABELS.put("class", class_);
         LABELS.put("else", else_);
@@ -62,6 +62,10 @@ public final class ScannerImpl extends Scanner {
             readNumber(t);
         } else {
             switch (ch) {
+                // End of File
+                case EOF:
+                    t.kind = eof;
+                    break;
                 // minus
                 case '+':
                     nextCh();
@@ -186,8 +190,8 @@ public final class ScannerImpl extends Scanner {
                     break;
                 // semicolon
                 case ';':
-                    t.kind = semicolon;
                     nextCh();
+                    t.kind = semicolon;
                     break;
                 // comma
                 case ',':
@@ -262,11 +266,10 @@ public final class ScannerImpl extends Scanner {
     void nextCh() {
         try {
             ch = (char) in.read();
+            col++;
             if (ch == '\n') {
-                col = 0;
                 line++;
-            } else if (ch != EOF) {
-                col++;
+                col = 0;
             }
         } catch (IOException e) {
             ch = EOF;
