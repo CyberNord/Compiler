@@ -13,28 +13,28 @@ import static ssw.mj.Token.Kind.*;
 
 public final class ScannerImpl extends Scanner {
 
-    private static final HashMap<String, Token.Kind> identifier;
+    private static final HashMap<String, Token.Kind> LABELS;
 
     static {
-        identifier = new HashMap<>();
-        identifier.put("none", none);
-        identifier.put("identifier", ident);
-        identifier.put("number", number);
-        identifier.put("character constant", charConst);
-        identifier.put("break", break_);
-        identifier.put("class", class_);
-        identifier.put("else", else_);
-        identifier.put("final", final_);
-        identifier.put("if", if_);
-        identifier.put("new", new_);
-        identifier.put("print", print);
-        identifier.put("program", program);
-        identifier.put("read", read);
-        identifier.put("return", return_);
-        identifier.put("void", void_);
-        identifier.put("while", while_);
-        identifier.put("hash", hash);
-        identifier.put("end of file", eof);
+        LABELS = new HashMap<>();
+//        identifier.put("none", none);
+//        identifier.put("identifier", ident);
+//        identifier.put("number", number);
+//        identifier.put("character constant", charConst);
+        LABELS.put("break", break_);
+        LABELS.put("class", class_);
+        LABELS.put("else", else_);
+        LABELS.put("final", final_);
+        LABELS.put("if", if_);
+        LABELS.put("new", new_);
+        LABELS.put("print", print);
+        LABELS.put("program", program);
+        LABELS.put("read", read);
+        LABELS.put("return", return_);
+        LABELS.put("void", void_);
+        LABELS.put("while", while_);
+        LABELS.put("hash", hash);
+        LABELS.put("end of file", eof);
 
     }
 
@@ -277,8 +277,20 @@ public final class ScannerImpl extends Scanner {
     /*
     Read an identifier
     Recognizes keywords (HashMap String -->Token.Kind) */
-    void readName(Token t){
-        //TODO
+    void readName(Token t) {
+        t.kind = ident;
+        StringBuilder sb = new StringBuilder();
+
+        // read in all following chars (numbers or letter)
+        while (isNumber(ch) || isLetter(ch)) {
+            sb.append(ch);
+            nextCh();
+        }
+        t.str = sb.toString();
+        // check if the string is a special label otherwise it's an ident
+        if (LABELS.containsKey(t.str)) {
+            t.kind = LABELS.get(t.str);
+        }
     }
 
     //Reads a number
