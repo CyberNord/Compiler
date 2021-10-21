@@ -72,15 +72,22 @@ public final class ScannerImpl extends Scanner {
                         t.kind = times;
                     }
                     break;
-                // divide
+                // slash
                 case '/':
                     nextCh();
                     if (ch == '=') {
                         t.kind = slashas;
                         nextCh();
+                    } else if (ch == '*') {
+                        skipComment(t);
+                        nextCh();
                     } else {
                         t.kind = slash;
                     }
+                    break;
+                // backslash
+                case '\'':
+                    readCharConst(t);
                     break;
                 // percent
                 case '%':
@@ -164,7 +171,6 @@ public final class ScannerImpl extends Scanner {
                 // dot(s)
                 case '.':
                     nextCh();
-                    ;
                     if (ch == '.') {
                         nextCh();
                         if (ch == '.') {
