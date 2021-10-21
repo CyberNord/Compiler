@@ -114,13 +114,14 @@ public final class ScannerImpl extends Scanner {
                         nextCh();
                     } else if (ch == '*') {
                         skipComment(t);
-                        nextCh();
+                        t = next();     // overwrite the token
                     } else {
                         t.kind = slash;
                     }
                     break;
                 // ' charConst
                 case '\'':
+//                    nextCh();   // jump to '
                     readCharConst(t);
                     break;
                 // percent
@@ -150,7 +151,7 @@ public final class ScannerImpl extends Scanner {
                         t.kind = neq;
                         nextCh();
                     } else {
-                        error(t, INVALID_CHAR, ch);
+                        error(t, INVALID_CHAR, '!');
                     }
                     break;
                 // lesser
@@ -180,7 +181,7 @@ public final class ScannerImpl extends Scanner {
                         t.kind = and;
                         nextCh();
                     } else {
-                        error(t, INVALID_CHAR, ch);
+                        error(t, INVALID_CHAR, '&');
                     }
                     break;
                 //OR
@@ -190,7 +191,7 @@ public final class ScannerImpl extends Scanner {
                         t.kind = or;
                         nextCh();
                     } else {
-                        error(t, INVALID_CHAR, ch);
+                        error(t, INVALID_CHAR, '|');
                     }
                     break;
                 // semicolon
@@ -323,91 +324,54 @@ public final class ScannerImpl extends Scanner {
     // Todo complete mess
     void readCharConst(Token t){
         t.kind = charConst;
-        nextCh();
+        nextCh(); // jump to '
 
         switch (ch) {
+            case EOF:
+                error(t, EOF_IN_CHAR);
+                return;
             // Illegal linefeed"
             case LF:
+            case '\r':
                 error(t, ILLEGAL_LINE_END);
                 nextCh();
                 return;
-            // single Char const
-            case 'a':
-            case 'b':
-            case 'c':
-            case 'd':
-            case 'e':
-            case 'f':
-            case 'g':
-            case 'h':
-            case 'i':
-            case 'j':
-            case 'k':
-            case 'l':
-            case 'm':
-            case 'n':
-            case 'o':
-            case 'p':
-            case 'q':
-            case 'r':
-            case 's':
-            case 't':
-            case 'u':
-            case 'v':
-            case 'w':
-            case 'x':
-            case 'y':
-            case 'z':
-                char c = ch;
-                nextCh();
-                if (ch == '\'') {
-                    // Todo Test; allTokens : [...] missing ' at end of character constant
-                    t.str = "" + c;
-                    nextCh();
-                    break;
-                } else {
-                    error(t, UNDEFINED_ESCAPE, ch);
-                    return;
-                }
             case '\'':
                 error(t, EMPTY_CHARCONST);
                 return;
             case '\\':
                 nextCh();
-                switch (ch) {
-                    case 'n':
-                        t.val = '\n';
-                        break;
-                    case 'r':
-                        t.val = '\r';
-                        break;
-                    case '\'':
-                        t.val = '\'';
-                        break;
-                    default:
-                        error(t, UNDEFINED_ESCAPE, ch);
+                if (ch == 'n') {
+                    t.val = '\n';
+                } else if (ch == 'r') {
+                    t.val = '\r';
+                } else if (ch == '\'' || ch == '\\') {
+                    t.val = ch;
+                } else if (ch == LF || ch == '\r') {
+                    error(t, ILLEGAL_LINE_END);
+                    nextCh();
+                    return;
+                } else {
+                    error(t, UNDEFINED_ESCAPE, ch);      // Todo: doch wieder zu switch case & LF dazu tun
                 }
                 break;
             default:
-                t.kind = none;
                 t.val = ch;
+                nextCh();
+                if (ch == '\'') {
+                    nextCh();
+                } else {
+                    error(t, MISSING_QUOTE);
+                }
                 break;
         }
-        nextCh();
-        if (ch == '\'') {
-            nextCh();
-        } else {
-            error(t, MISSING_QUOTE);
-        }
+
     }
 
     /*
     Skips nested comments
     ch then contains the character after the comment */
     void skipComment(Token t) {
-        // Todo: Comments in general :
-        //        - counter does not work
-        //        - error returns value of wrong scope
         int counter = 1;
         nextCh();
         while (counter > 0) {
