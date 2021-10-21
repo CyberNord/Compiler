@@ -32,9 +32,8 @@ public final class ScannerImpl extends Scanner {
         LABELS.put("return", return_);
         LABELS.put("void", void_);
         LABELS.put("while", while_);
-        LABELS.put("hash", hash);
+//        LABELS.put("hash", hash);
         LABELS.put("end of file", eof);
-
     }
 
     // Exercise 2: implementation of scanner
@@ -50,7 +49,7 @@ public final class ScannerImpl extends Scanner {
     @Override
     public Token next() {
         // skip blanks, tabs, eols
-        while (ch <= ' ') {
+        while (Character.isWhitespace(ch)) {
             nextCh();
         }
         Token t = new Token(none, line, col);
@@ -62,6 +61,11 @@ public final class ScannerImpl extends Scanner {
             readNumber(t);
         } else {
             switch (ch) {
+                // hash
+                case '#':
+                    t.kind = hash;
+                    nextCh();
+                    break;
                 // End of File
                 case EOF:
                     t.kind = eof;
@@ -115,7 +119,7 @@ public final class ScannerImpl extends Scanner {
                         t.kind = slash;
                     }
                     break;
-                // backslash
+                // ' charConst
                 case '\'':
                     readCharConst(t);
                     break;
@@ -241,8 +245,10 @@ public final class ScannerImpl extends Scanner {
                     nextCh();
                     break;
                 default:
+                    t.kind = none;
                     error(t, INVALID_CHAR, ch);
                     nextCh();
+                    break;
             }
         }
         return t;
@@ -284,7 +290,8 @@ public final class ScannerImpl extends Scanner {
         StringBuilder sb = new StringBuilder();
 
         // read in all following chars (numbers or letter)
-        while (isNumber(ch) || isLetter(ch)) {
+        // Todo underscore
+        while (isNumber(ch) || isLetter(ch) || ch == '_') {
             sb.append(ch);
             nextCh();
         }
@@ -312,6 +319,7 @@ public final class ScannerImpl extends Scanner {
     }
 
     //Reads a character constant
+    // Todo complete mess
     void readCharConst(Token t){
         t.kind = charConst;
         nextCh();
@@ -338,7 +346,9 @@ public final class ScannerImpl extends Scanner {
                 }
                 break;
             default:
+                t.kind = none;
                 t.val = ch;
+                break;
         }
         nextCh();
         if (ch == '\'') {
@@ -352,23 +362,30 @@ public final class ScannerImpl extends Scanner {
     Skips nested comments
     ch then contains the character after the comment */
     void skipComment(Token t) {
-        nextCh();// current char is still '*'
         int counter = 1;
-        char prev = ch;
         nextCh();
-
         while (counter > 0) {
-            if (prev == '*' && ch == '/') {
-                counter--;
-            } else if (prev == '/' && ch == '*') {
-                counter++;
-            }
             if (ch == EOF) {
-                error(t, EOF_IN_COMMENT, ch);
+                error(t, EOF_IN_COMMENT);
+                break;
             }
-            prev = ch;
+
+            if (ch == '*') {
+                nextCh();
+                if (ch == '/') {
+                    counter--;
+                }
+            }
+
+            if (ch == '/') {
+                nextCh();
+                if (ch == '*') {
+                    counter++;
+                }
+            }
             nextCh();
         }
+
 
     }
 }
