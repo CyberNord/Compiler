@@ -6,6 +6,7 @@ import ssw.mj.Token;
 import java.io.IOException;
 import java.io.Reader;
 
+import static ssw.mj.Errors.Message.EOF_IN_COMMENT;
 import static ssw.mj.Errors.Message.INVALID_CHAR;
 import static ssw.mj.Token.Kind.*;
 
@@ -215,8 +216,7 @@ public final class ScannerImpl extends Scanner {
                     nextCh();
             }
         }
-
-        return null;
+        return t;
     }
 
     // checks if char is a-z or A-Z
@@ -268,7 +268,24 @@ public final class ScannerImpl extends Scanner {
     /*
     Skips nested comments
     ch then contains the character after the comment */
-    void skipComment(Token t){
-        //TODO
+    void skipComment(Token t) {
+        nextCh();// current char is still '*'
+        int counter = 1;
+        char prev = ch;
+        nextCh();
+
+        while (counter > 0) {
+            if (prev == '*' && ch == '/') {
+                counter--;
+            } else if (prev == '/' && ch == '*') {
+                counter++;
+            }
+            if (ch == EOF) {
+                error(t, EOF_IN_COMMENT, ch);
+            }
+            prev = ch;
+            nextCh();
+        }
+
     }
 }
