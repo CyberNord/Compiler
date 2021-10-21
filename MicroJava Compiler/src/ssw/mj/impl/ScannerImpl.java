@@ -7,8 +7,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 
-import static ssw.mj.Errors.Message.EOF_IN_COMMENT;
-import static ssw.mj.Errors.Message.INVALID_CHAR;
+import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
 
 public final class ScannerImpl extends Scanner {
@@ -294,8 +293,19 @@ public final class ScannerImpl extends Scanner {
     }
 
     //Reads a number
-    void readNumber(Token t){
-        //TODO
+    void readNumber(Token t) {
+        t.kind = number;
+        StringBuilder sb = new StringBuilder();
+        while (isNumber(ch)) {
+            sb.append(ch);
+            nextCh();
+        }
+        t.str = sb.toString();
+        try {
+            t.val = Integer.parseInt(t.str);
+        } catch (NumberFormatException e) {
+            error(t, BIG_NUM, t.str);
+        }
     }
 
     //Reads a character constant
