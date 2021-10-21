@@ -5,12 +5,38 @@ import ssw.mj.Token;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.HashMap;
 
 import static ssw.mj.Errors.Message.EOF_IN_COMMENT;
 import static ssw.mj.Errors.Message.INVALID_CHAR;
 import static ssw.mj.Token.Kind.*;
 
 public final class ScannerImpl extends Scanner {
+
+    private static final HashMap<String, Token.Kind> identifier;
+
+    static {
+        identifier = new HashMap<>();
+        identifier.put("none", none);
+        identifier.put("identifier", ident);
+        identifier.put("number", number);
+        identifier.put("character constant", charConst);
+        identifier.put("break", break_);
+        identifier.put("class", class_);
+        identifier.put("else", else_);
+        identifier.put("final", final_);
+        identifier.put("if", if_);
+        identifier.put("new", new_);
+        identifier.put("print", print);
+        identifier.put("program", program);
+        identifier.put("read", read);
+        identifier.put("return", return_);
+        identifier.put("void", void_);
+        identifier.put("while", while_);
+        identifier.put("hash", hash);
+        identifier.put("end of file", eof);
+
+    }
 
     // Exercise 2: implementation of scanner
     public ScannerImpl(Reader r) {
