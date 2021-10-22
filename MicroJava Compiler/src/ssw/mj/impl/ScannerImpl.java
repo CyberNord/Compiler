@@ -315,70 +315,85 @@ public final class ScannerImpl extends Scanner {
     }
 
     //Reads a character constant
-    // Todo complete mess
     void readCharConst(Token t){
+        // initialize token & Jump to next sign after '
         t.kind = charConst;
-        nextCh(); // jump to  next char after '
+        nextCh();
 
-        switch (ch) {
-            case EOF:
+        // Error Cases
+        if (ch == EOF) {
+            error(t, EOF_IN_CHAR);
+            return;
+        // Illegal linefeed" or Escape
+        } else if (ch == LF || ch == '\r') {
+            error(t, ILLEGAL_LINE_END);
+            nextCh();
+            return;
+        } else if (ch == '\'') {       // next sign = '
+            error(t, EMPTY_CHARCONST);
+            nextCh();
+            return;
+
+        // Legal next sign
+        } else if (ch == '\\') {      // next sign = \
+            nextCh();
+
+            // signs after \ (second signs)
+
+            // nested Error Cases
+            if (ch == EOF) {
                 error(t, EOF_IN_CHAR);
                 return;
-            // Illegal linefeed" or Escape
-            case LF: case '\r':
+                // Illegal linefeed" or Escape
+            } else if (ch == LF || ch == '\r') {
                 error(t, ILLEGAL_LINE_END);
                 nextCh();
                 return;
-            case '\'':       // next sign = '
-                error(t, EMPTY_CHARCONST);
-                nextCh();
-                return;
-            case '\\':      // next sign = \
-                nextCh();
-                switch (ch) {
-                    // Legal LF or \r
-                    case 'n':
-                        t.val = '\n';
-                        nextCh();
-                        if (ch != '\'') {           // check if next ch = ' and skip it
-                            error(t, MISSING_QUOTE);
-                        }else{
-                            nextCh();
-                        }
-                        break;
-                    case 'r':
-                        t.val = '\r';
-                        nextCh();
-                        if (ch != '\'') {           // check if next ch = ' and skip it
-                            error(t, MISSING_QUOTE);
-                        }else{
-                            nextCh();
-                        }
-                        break;
-                    // Cases \ or'
-                    case '\'': case '\\':
-                        t.val = ch;
-                        // unexpected LF or \r
-                    case LF: case '\r':
-                        error(t, MISSING_QUOTE);
-                        nextCh();
-                        return;
-                    default:
-                        error(t, UNDEFINED_ESCAPE, ch);
-                        break;
-                }
-                break;
-            default:
-                t.val = ch;
-                nextCh();
-                if (ch == '\'') {
-                    nextCh();
-                } else {
-                    error(t, MISSING_QUOTE);
-                }
-                break;
-        }
 
+            // Cases \ or'
+            } else if (ch == '\'' || ch == '\\') {
+                nextCh();
+                if(ch != '\'') {
+                    error(t, MISSING_QUOTE);
+                }else{
+                    error(t, INVALID_CHAR);
+                }
+                return;
+
+            // Legal LF or \r
+            }else if (ch == 'n') {
+                t.val = '\n';
+                nextCh();
+                if (ch != '\'') {           // check if next ch = ' and skip it
+                    error(t, MISSING_QUOTE);
+                } else {
+                    nextCh();
+                }
+            } else if (ch == 'r') {
+                t.val = '\r';
+                nextCh();
+                if (ch != '\'') {           // check if next ch = ' and skip it
+                    error(t, MISSING_QUOTE);
+                } else {
+                    nextCh();
+                }
+
+
+
+            } else {
+                error(t, UNDEFINED_ESCAPE, ch);
+            }
+
+        // General case if there is any sign under ''
+        } else {
+            t.val = ch;
+            nextCh();
+            if (ch == '\'') {
+                nextCh();
+            } else {
+                error(t, MISSING_QUOTE);
+            }
+        }
     }
 
     /*
@@ -413,20 +428,3 @@ public final class ScannerImpl extends Scanner {
 
     }
 }
-
-// #1
-//    nextCh();
-//                if (ch == 'n') {
-//                        t.val = '\n';
-//                        } else if (ch == 'r') {
-//                        t.val = '\r';
-//                        } else if (ch == '\'' || ch == '\\') {
-//                        t.val = ch;
-//                        } else if (ch == LF || ch == '\r') {
-//                        error(t, ILLEGAL_LINE_END);
-//                        nextCh();
-//                        return;
-//                        } else {
-//                        error(t, UNDEFINED_ESCAPE, ch);
-//                        }
-//                        break;
