@@ -324,28 +324,39 @@ public final class ScannerImpl extends Scanner {
             case EOF:
                 error(t, EOF_IN_CHAR);
                 return;
-            // Illegal linefeed"
+            // Illegal linefeed" or Escape
             case LF:
             case '\r':
                 error(t, ILLEGAL_LINE_END);
                 nextCh();
                 return;
-            case '\'':
+            case '\'':       // next sign = '
                 error(t, EMPTY_CHARCONST);
                 nextCh();
                 return;
-            case '\\':  // #1
+            case '\\':  // next sign = \
                 nextCh();
                 switch (ch) {
+                    // Legal LF or \r
                     case 'n':
                         t.val = '\n';
+                        nextCh();
+                        if (ch != '\'') {
+                            error(t, MISSING_QUOTE);
+                        }
                         break;
                     case 'r':
                         t.val = '\r';
+                        nextCh();
+                        if (ch != '\'') {
+                            error(t, MISSING_QUOTE);
+                        }
                         break;
+                    // Cases \ or'
                     case '\'':
                     case '\\':
                         t.val = ch;
+                        // unexpected LF or \r
                     case LF:
                     case '\r':
                         error(t, MISSING_QUOTE);
