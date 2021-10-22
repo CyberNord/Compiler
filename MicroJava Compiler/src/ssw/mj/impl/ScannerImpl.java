@@ -43,15 +43,15 @@ public final class ScannerImpl extends Scanner {
      * Returns next token. To be used by parser. */
     @Override
     public Token next() {
-        // skip blanks, tabs, eols
+        // skip blanks, tabs, eol
         while (Character.isWhitespace(ch)) {
             nextCh();
         }
         Token t = new Token(none, line, col);
-        if (isLetter(ch)) {
+        if (Character.isLetter(ch)) {
             t.kind = ident;
             readName(t);
-        } else if (isNumber(ch)) {
+        } else if (Character.isDigit(ch)) {
             t.kind = number;
             readNumber(t);
         } else {
@@ -250,16 +250,6 @@ public final class ScannerImpl extends Scanner {
         return t;
     }
 
-    // checks if char is a-z or A-Z
-    boolean isLetter(char c) {
-        return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z';
-    }
-
-    //checks if char is 0-9
-    boolean isNumber(char c) {
-        return '0' <= c && c <= '9';
-    }
-
     /*
     Reads the next input character and stores it in the ch field
     or EOF at end of file
@@ -286,8 +276,7 @@ public final class ScannerImpl extends Scanner {
         StringBuilder sb = new StringBuilder();
 
         // read in all following chars (numbers or letter)
-        // Todo underscore
-        while (isNumber(ch) || isLetter(ch) || ch == '_') {
+        while (Character.isDigit(ch) || Character.isLetter(ch) || ch == '_') {
             sb.append(ch);
             nextCh();
         }
@@ -302,7 +291,7 @@ public final class ScannerImpl extends Scanner {
     void readNumber(Token t) {
         t.kind = number;
         StringBuilder sb = new StringBuilder();
-        while (isNumber(ch)) {
+        while (Character.isDigit(ch)) {
             sb.append(ch);
             nextCh();
         }
