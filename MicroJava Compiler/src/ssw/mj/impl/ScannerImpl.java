@@ -43,14 +43,15 @@ public final class ScannerImpl extends Scanner {
      * Returns next token. To be used by parser. */
     @Override
     public Token next() {
+
         // skip blanks, tabs, eol
         while (Character.isWhitespace(ch)) {
             nextCh();
         }
+
         Token t = new Token(none, line, col);
 
             switch (ch) {
-
                 case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
                 case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z': case 'A': case 'B':
                 case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P':
@@ -58,12 +59,10 @@ public final class ScannerImpl extends Scanner {
                     t.kind = ident;
                     readName(t);
                     break;
-
                 case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
                     t.kind = number;
                     readNumber(t);
                     break;
-
                 // plus
                 case '+':
                     nextCh();
