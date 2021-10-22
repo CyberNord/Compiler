@@ -381,18 +381,21 @@ public final class ScannerImpl extends Scanner {
                 nextCh();
                 if (ch == '*') {
                     counter++;
+                    nextCh();
                 }
             } else if (ch == '*') {
                 nextCh();
                 if (ch == '/') {
                     counter--;
+                    nextCh();
                 }
             } else if (ch == EOF) {
                 error(t, EOF_IN_COMMENT);
                 break;
-            }
-            nextCh();
 
+            } else {
+                nextCh();
+            }
         }
 
 
