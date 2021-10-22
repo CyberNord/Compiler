@@ -325,8 +325,7 @@ public final class ScannerImpl extends Scanner {
                 error(t, EOF_IN_CHAR);
                 return;
             // Illegal linefeed" or Escape
-            case LF:
-            case '\r':
+            case LF: case '\r':
                 error(t, ILLEGAL_LINE_END);
                 nextCh();
                 return;
@@ -353,12 +352,10 @@ public final class ScannerImpl extends Scanner {
                         }
                         break;
                     // Cases \ or'
-                    case '\'':
-                    case '\\':
+                    case '\'': case '\\':
                         t.val = ch;
                         // unexpected LF or \r
-                    case LF:
-                    case '\r':
+                    case LF: case '\r':
                         error(t, MISSING_QUOTE);
                         nextCh();
                         return;
