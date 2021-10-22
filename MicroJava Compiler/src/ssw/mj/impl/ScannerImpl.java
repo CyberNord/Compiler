@@ -318,7 +318,7 @@ public final class ScannerImpl extends Scanner {
     // Todo complete mess
     void readCharConst(Token t){
         t.kind = charConst;
-        nextCh(); // jump to '
+        nextCh(); // jump to  next char after '
 
         switch (ch) {
             case EOF:
@@ -333,22 +333,26 @@ public final class ScannerImpl extends Scanner {
                 error(t, EMPTY_CHARCONST);
                 nextCh();
                 return;
-            case '\\':  // next sign = \
+            case '\\':      // next sign = \
                 nextCh();
                 switch (ch) {
                     // Legal LF or \r
                     case 'n':
                         t.val = '\n';
                         nextCh();
-                        if (ch != '\'') {
+                        if (ch != '\'') {           // check if next ch = ' and skip it
                             error(t, MISSING_QUOTE);
+                        }else{
+                            nextCh();
                         }
                         break;
                     case 'r':
                         t.val = '\r';
                         nextCh();
-                        if (ch != '\'') {
+                        if (ch != '\'') {           // check if next ch = ' and skip it
                             error(t, MISSING_QUOTE);
+                        }else{
+                            nextCh();
                         }
                         break;
                     // Cases \ or'
