@@ -16,10 +16,6 @@ public final class ScannerImpl extends Scanner {
 
     static {
         LABELS = new HashMap<>();
-//        LABELS.put("none", none);
-//        LABELS.put("identifier", ident);
-//        LABELS.put("number", number);
-//        LABELS.put("character constant", charConst);
         LABELS.put("break", break_);
         LABELS.put("class", class_);
         LABELS.put("else", else_);
@@ -32,7 +28,6 @@ public final class ScannerImpl extends Scanner {
         LABELS.put("return", return_);
         LABELS.put("void", void_);
         LABELS.put("while", while_);
-//        LABELS.put("hash", hash);
         LABELS.put("end of file", eof);
     }
 
@@ -121,7 +116,6 @@ public final class ScannerImpl extends Scanner {
                     break;
                 // ' charConst
                 case '\'':
-//                    nextCh();   // jump to '
                     readCharConst(t);
                     break;
                 // percent
@@ -339,20 +333,26 @@ public final class ScannerImpl extends Scanner {
             case '\'':
                 error(t, EMPTY_CHARCONST);
                 return;
-            case '\\':
+            case '\\':  // #1
                 nextCh();
-                if (ch == 'n') {
-                    t.val = '\n';
-                } else if (ch == 'r') {
-                    t.val = '\r';
-                } else if (ch == '\'' || ch == '\\') {
-                    t.val = ch;
-                } else if (ch == LF || ch == '\r') {
-                    error(t, ILLEGAL_LINE_END);
-                    nextCh();
-                    return;
-                } else {
-                    error(t, UNDEFINED_ESCAPE, ch);      // Todo: doch wieder zu switch case & LF dazu tun
+                switch (ch) {
+                    case 'n':
+                        t.val = '\n';
+                        break;
+                    case 'r':
+                        t.val = '\r';
+                        break;
+                    case '\'':
+                    case '\\':
+                        t.val = ch;
+                    case LF:
+                    case '\r':
+                        error(t, ILLEGAL_LINE_END);
+                        nextCh();
+                        return;
+                    default:
+                        error(t, UNDEFINED_ESCAPE, ch);
+                        break;
                 }
                 break;
             default:
@@ -400,3 +400,20 @@ public final class ScannerImpl extends Scanner {
 
     }
 }
+
+// #1
+//    nextCh();
+//                if (ch == 'n') {
+//                        t.val = '\n';
+//                        } else if (ch == 'r') {
+//                        t.val = '\r';
+//                        } else if (ch == '\'' || ch == '\\') {
+//                        t.val = ch;
+//                        } else if (ch == LF || ch == '\r') {
+//                        error(t, ILLEGAL_LINE_END);
+//                        nextCh();
+//                        return;
+//                        } else {
+//                        error(t, UNDEFINED_ESCAPE, ch);      // Todo: doch wieder zu switch case & LF dazu tun
+//                        }
+//                        break;
