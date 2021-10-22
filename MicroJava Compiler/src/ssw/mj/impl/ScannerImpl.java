@@ -56,15 +56,6 @@ public final class ScannerImpl extends Scanner {
             readNumber(t);
         } else {
             switch (ch) {
-                // hash
-                case '#':
-                    t.kind = hash;
-                    nextCh();
-                    break;
-                // End of File
-                case EOF:
-                    t.kind = eof;
-                    break;
                 // minus
                 case '+':
                     nextCh();
@@ -240,6 +231,15 @@ public final class ScannerImpl extends Scanner {
                     t.kind = rbrace;
                     nextCh();
                     break;
+                // hash
+                case '#':
+                    t.kind = hash;
+                    nextCh();
+                    break;
+                // End of File
+                case EOF:
+                    t.kind = eof;
+                    break;
                 default:
                     t.kind = none;
                     error(t, INVALID_CHAR, ch);
@@ -309,11 +309,11 @@ public final class ScannerImpl extends Scanner {
         t.kind = charConst;
         nextCh();
 
-        // Error Cases
         switch (ch) {
             case EOF:
                 error(t, EOF_IN_CHAR);
                 return;
+
             // Illegal linefeed" or Escape
             case LF:
             case '\r':
@@ -328,11 +328,12 @@ public final class ScannerImpl extends Scanner {
             // Legal next sign
             case '\\':       // next sign = \
                 nextCh();
-                // nested Error Cases
+
                 switch (ch) {
                     case EOF:
                         error(t, EOF_IN_CHAR);
                         return;
+
                     // Illegal linefeed" or Escape
                     case LF:
                     case '\r':
@@ -349,44 +350,40 @@ public final class ScannerImpl extends Scanner {
                         } else {
                             error(t, MISSING_QUOTE);
                         }
-
-                        // Case \
                         break;
+
+                    // Case \
                     case '\\':
                         t.val = '\\';
-                        nextCh();
                         missingQuoteCheck(t);
-
-                        // Legal LF or \r
                         break;
+
+                    // Legal LF or \r
                     case 'n':
                         t.val = '\n';
-                        nextCh();
                         missingQuoteCheck(t);
                         break;
                     case 'r':
                         t.val = '\r';
-                        nextCh();
                         missingQuoteCheck(t);
                         break;
                     default:
                         error(t, UNDEFINED_ESCAPE, ch);
-                        nextCh();
                         missingQuoteCheck(t);
                         break;
                 }
-
-                // General case if there is any sign under ''
                 break;
+
+            // General case if there is any sign under ''
             default:
                 t.val = ch;
-                nextCh();
                 missingQuoteCheck(t);
                 break;
         }
     }
 
     private void missingQuoteCheck(Token t) {
+        nextCh();
         if (ch != '\'') {
             error(t, MISSING_QUOTE);
         } else {
@@ -401,7 +398,6 @@ public final class ScannerImpl extends Scanner {
         int counter = 1;
         nextCh();
         while (counter > 0) {
-
             if (ch == '/') {
                 nextCh();
                 if (ch == '*') {
