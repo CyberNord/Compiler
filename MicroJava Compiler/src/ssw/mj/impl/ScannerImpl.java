@@ -332,6 +332,7 @@ public final class ScannerImpl extends Scanner {
                 return;
             case '\'':
                 error(t, EMPTY_CHARCONST);
+                nextCh();
                 return;
             case '\\':  // #1
                 nextCh();
@@ -347,7 +348,7 @@ public final class ScannerImpl extends Scanner {
                         t.val = ch;
                     case LF:
                     case '\r':
-                        error(t, ILLEGAL_LINE_END);
+                        error(t, MISSING_QUOTE);
                         nextCh();
                         return;
                     default:
@@ -381,20 +382,17 @@ public final class ScannerImpl extends Scanner {
                 if (ch == '*') {
                     counter++;
                 }
-            }
-            if (ch == '*') {
+            } else if (ch == '*') {
                 nextCh();
                 if (ch == '/') {
                     counter--;
                 }
-            }
-
-            if (ch == EOF) {
+            } else if (ch == EOF) {
                 error(t, EOF_IN_COMMENT);
                 break;
             }
-
             nextCh();
+
         }
 
 
@@ -414,6 +412,6 @@ public final class ScannerImpl extends Scanner {
 //                        nextCh();
 //                        return;
 //                        } else {
-//                        error(t, UNDEFINED_ESCAPE, ch);      // Todo: doch wieder zu switch case & LF dazu tun
+//                        error(t, UNDEFINED_ESCAPE, ch);
 //                        }
 //                        break;
