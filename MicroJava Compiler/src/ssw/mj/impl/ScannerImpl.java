@@ -48,15 +48,23 @@ public final class ScannerImpl extends Scanner {
             nextCh();
         }
         Token t = new Token(none, line, col);
-        if (Character.isLetter(ch)) {
-            t.kind = ident;
-            readName(t);
-        } else if (Character.isDigit(ch)) {
-            t.kind = number;
-            readNumber(t);
-        } else {
+
             switch (ch) {
-                // minus
+
+                case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':
+                case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z': case 'A': case 'B':
+                case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P':
+                case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
+                    t.kind = ident;
+                    readName(t);
+                    break;
+
+                case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+                    t.kind = number;
+                    readNumber(t);
+                    break;
+
+                // plus
                 case '+':
                     nextCh();
                     if (ch == '+') {
@@ -69,7 +77,7 @@ public final class ScannerImpl extends Scanner {
                         t.kind = plus;
                     }
                     break;
-                // plus
+                // minus
                 case '-':
                     nextCh();
                     if (ch == '-') {
@@ -246,7 +254,6 @@ public final class ScannerImpl extends Scanner {
                     nextCh();
                     break;
             }
-        }
         return t;
     }
 
@@ -325,7 +332,6 @@ public final class ScannerImpl extends Scanner {
                 nextCh();
                 return;
 
-            // Legal next sign
             case '\\':       // next sign = \
                 nextCh();
 
