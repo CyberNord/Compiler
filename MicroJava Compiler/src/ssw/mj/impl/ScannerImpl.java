@@ -262,7 +262,7 @@ public final class ScannerImpl extends Scanner {
     or EOF at end of file
     Recognizes line breaks: LF and CR LF
     Keeps the position in the fields line and col  */
-    void nextCh() {
+    private void nextCh() {
         try {
             ch = (char) in.read();
             col++;
@@ -278,7 +278,7 @@ public final class ScannerImpl extends Scanner {
     /*
     Read an identifier
     Recognizes keywords (HashMap String -->Token.Kind) */
-    void readName(Token t) {
+    private void readName(Token t) {
         t.kind = ident;
         StringBuilder sb = new StringBuilder();
 
@@ -295,7 +295,7 @@ public final class ScannerImpl extends Scanner {
     }
 
     //Reads a number
-    void readNumber(Token t) {
+    private void readNumber(Token t) {
         t.kind = number;
         StringBuilder sb = new StringBuilder();
         while (Character.isDigit(ch)) {
@@ -311,7 +311,7 @@ public final class ScannerImpl extends Scanner {
     }
 
     //Reads a character constant
-    void readCharConst(Token t){
+    private void readCharConst(Token t){
         // initialize token & Jump to next sign after '
         t.kind = charConst;
         nextCh();
@@ -400,7 +400,7 @@ public final class ScannerImpl extends Scanner {
     /*
     Skips nested comments
     ch then contains the character after the comment */
-    void skipComment(Token t) {
+    private void skipComment(Token t) {
         int counter = 1;
         nextCh();
         while (counter > 0) {
