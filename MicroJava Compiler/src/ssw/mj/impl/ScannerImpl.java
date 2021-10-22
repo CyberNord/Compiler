@@ -321,68 +321,79 @@ public final class ScannerImpl extends Scanner {
         nextCh();
 
         // Error Cases
-        if (ch == EOF) {
-            error(t, EOF_IN_CHAR);
-            return;
-        // Illegal linefeed" or Escape
-        } else if (ch == LF || ch == '\r') {
-            error(t, ILLEGAL_LINE_END);
-            nextCh();
-            return;
-        } else if (ch == '\'') {       // next sign = '
-            error(t, EMPTY_CHARCONST);
-            nextCh();
-            return;
-
-        // Legal next sign
-        } else if (ch == '\\') {      // next sign = \
-            nextCh();
-            // nested Error Cases
-            if (ch == EOF) {
+        switch (ch) {
+            case EOF:
                 error(t, EOF_IN_CHAR);
                 return;
-                // Illegal linefeed" or Escape
-            } else if (ch == LF || ch == '\r') {
+            // Illegal linefeed" or Escape
+            case LF:
+            case '\r':
                 error(t, ILLEGAL_LINE_END);
                 nextCh();
                 return;
-
-            // Case '
-            } else if (ch == '\'') {
+            case '\'':        // next sign = '
+                error(t, EMPTY_CHARCONST);
                 nextCh();
-                if (ch == '\'') {
-                    t.val = '\'';
-                    nextCh();
-                } else {
-                    error(t, MISSING_QUOTE);
+                return;
+
+            // Legal next sign
+            case '\\':       // next sign = \
+                nextCh();
+                // nested Error Cases
+                switch (ch) {
+                    case EOF:
+                        error(t, EOF_IN_CHAR);
+                        return;
+                    // Illegal linefeed" or Escape
+                    case LF:
+                    case '\r':
+                        error(t, ILLEGAL_LINE_END);
+                        nextCh();
+                        return;
+
+                    // Case '
+                    case '\'':
+                        nextCh();
+                        if (ch == '\'') {
+                            t.val = '\'';
+                            nextCh();
+                        } else {
+                            error(t, MISSING_QUOTE);
+                        }
+
+                        // Case \
+                        break;
+                    case '\\':
+                        t.val = '\\';
+                        nextCh();
+                        missingQuoteCheck(t);
+
+                        // Legal LF or \r
+                        break;
+                    case 'n':
+                        t.val = '\n';
+                        nextCh();
+                        missingQuoteCheck(t);
+                        break;
+                    case 'r':
+                        t.val = '\r';
+                        nextCh();
+                        missingQuoteCheck(t);
+                        break;
+                    default:
+                        error(t, UNDEFINED_ESCAPE, ch);
+                        nextCh();
+                        missingQuoteCheck(t);
+                        break;
                 }
 
-            // Case \
-            }else if(ch == '\\'){
-                t.val = '\\';
+                // General case if there is any sign under ''
+                break;
+            default:
+                t.val = ch;
                 nextCh();
                 missingQuoteCheck(t);
-
-            // Legal LF or \r
-            }else if (ch == 'n') {
-                t.val = '\n';
-                nextCh();
-                missingQuoteCheck(t);
-            } else if (ch == 'r') {
-                t.val = '\r';
-                nextCh();
-                missingQuoteCheck(t);
-            } else {
-                error(t, UNDEFINED_ESCAPE, ch);
-                nextCh();
-                missingQuoteCheck(t);
-            }
-
-        // General case if there is any sign under ''
-        } else {
-            t.val = ch;
-            nextCh();
-            missingQuoteCheck(t);
+                break;
         }
     }
 
