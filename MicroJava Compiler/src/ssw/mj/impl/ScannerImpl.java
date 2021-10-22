@@ -337,9 +337,6 @@ public final class ScannerImpl extends Scanner {
         // Legal next sign
         } else if (ch == '\\') {      // next sign = \
             nextCh();
-
-            // signs after \ (second signs)
-
             // nested Error Cases
             if (ch == EOF) {
                 error(t, EOF_IN_CHAR);
@@ -350,49 +347,50 @@ public final class ScannerImpl extends Scanner {
                 nextCh();
                 return;
 
-            // Cases \ or'
-            } else if (ch == '\'' || ch == '\\') {
+            // Case '
+            } else if (ch == '\'') {
                 nextCh();
-                if(ch != '\'') {
+                if (ch == '\'') {
+                    t.val = '\'';
+                    nextCh();
+                } else {
                     error(t, MISSING_QUOTE);
-                }else{
-                    error(t, INVALID_CHAR);
                 }
-                return;
+
+            // Case \
+            }else if(ch == '\\'){
+                t.val = '\\';
+                nextCh();
+                missingQuoteCheck(t);
 
             // Legal LF or \r
             }else if (ch == 'n') {
                 t.val = '\n';
                 nextCh();
-                if (ch != '\'') {           // check if next ch = ' and skip it
-                    error(t, MISSING_QUOTE);
-                } else {
-                    nextCh();
-                }
+                missingQuoteCheck(t);
             } else if (ch == 'r') {
                 t.val = '\r';
                 nextCh();
-                if (ch != '\'') {           // check if next ch = ' and skip it
-                    error(t, MISSING_QUOTE);
-                } else {
-                    nextCh();
-                }
-
-
-
+                missingQuoteCheck(t);
             } else {
                 error(t, UNDEFINED_ESCAPE, ch);
+                nextCh();
+                missingQuoteCheck(t);
             }
 
         // General case if there is any sign under ''
         } else {
             t.val = ch;
             nextCh();
-            if (ch == '\'') {
-                nextCh();
-            } else {
-                error(t, MISSING_QUOTE);
-            }
+            missingQuoteCheck(t);
+        }
+    }
+
+    private void missingQuoteCheck(Token t) {
+        if (ch != '\'') {
+            error(t, MISSING_QUOTE);
+        } else {
+            nextCh();
         }
     }
 
@@ -424,7 +422,5 @@ public final class ScannerImpl extends Scanner {
                 nextCh();
             }
         }
-
-
     }
 }
