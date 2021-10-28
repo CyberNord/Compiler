@@ -121,7 +121,16 @@ public final class ParserImpl extends Parser {
 
     // FormPars = Type ident { "," Type ident } [ ppperiod ].
     private void FormPars(){
-        //TODO
+        Type();
+        check(ident);
+        while (sym == comma) {
+            scan();
+            Type();
+            check(ident);
+        }
+        if(sym == ppperiod){
+            scan();
+        }
     }
 
     // Type = ident [ "[" "]" ].
