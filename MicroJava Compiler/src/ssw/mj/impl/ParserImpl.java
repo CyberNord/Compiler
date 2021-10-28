@@ -88,7 +88,13 @@ public final class ParserImpl extends Parser {
 
     // ClassDecl = "class" ident "{" { VarDecl } "}".
     private void ClassDecl(){
-        //TODO
+        check(class_);
+        check(ident);
+        check(lbrace);
+        while (sym == ident){
+            VarDecl();
+        }
+        check(rbrace);
     }
 
     // MethodDecl = ( Type | "void" ) ident "(" [ FormPars ] ")" { VarDecl } Block.
