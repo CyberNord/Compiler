@@ -77,7 +77,13 @@ public final class ParserImpl extends Parser {
 
     // VarDecl = Type ident { "," ident } ";".
     private void VarDecl(){
-        //TODO
+        Type();
+        check(ident);
+        while (sym != semicolon){
+            check(comma);
+            check(ident);
+        }
+        scan();
     }
 
     // ClassDecl = "class" ident "{" { VarDecl } "}".
