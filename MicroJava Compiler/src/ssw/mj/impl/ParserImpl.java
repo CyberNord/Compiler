@@ -4,6 +4,7 @@ import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
 
+import static ssw.mj.Errors.Message.METH_DECL;
 import static ssw.mj.Errors.Message.TOKEN_EXPECTED;
 import static ssw.mj.Token.Kind.*;
 
@@ -99,7 +100,23 @@ public final class ParserImpl extends Parser {
 
     // MethodDecl = ( Type | "void" ) ident "(" [ FormPars ] ")" { VarDecl } Block.
     private void MethodDecl(){
-        //TODO
+        if( sym == ident){
+            Type();
+        }else if(sym == void_){
+            scan();
+        }else{
+            error(METH_DECL);
+        }
+        check(ident);
+        check(lpar);
+        if(sym == ident){
+            FormPars();
+        }
+        check(lpar);
+        while (sym == ident){
+            VarDecl();
+        }
+        Block();
     }
 
     // FormPars = Type ident { "," Type ident } [ ppperiod ].
