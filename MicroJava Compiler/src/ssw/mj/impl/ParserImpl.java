@@ -135,7 +135,11 @@ public final class ParserImpl extends Parser {
 
     // Type = ident [ "[" "]" ].
     private void Type(){
-        //TODO
+        check(ident);
+        if(sym == lbrack){
+            scan();
+            check(rbrack);
+        }
     }
 
     // Block = "{" { Statement } "}".
