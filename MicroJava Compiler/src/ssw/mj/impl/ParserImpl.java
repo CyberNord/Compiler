@@ -312,7 +312,7 @@ public final class ParserImpl extends Parser {
     private void CondTerm(){
         CondFact();
         for (;;) {
-            if (sym == or) {
+            if (sym == and) {
                 scan();
                 CondFact();
             } else {
