@@ -362,7 +362,7 @@ public final class ParserImpl extends Parser {
         for(;;){
             if(firstOfMulop.contains(sym)){
                 Mulop();
-                Term();
+                Factor();
             }else{
                 break;
             }
