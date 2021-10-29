@@ -323,7 +323,9 @@ public final class ParserImpl extends Parser {
 
     // CondFact = Expr Relop Expr.
     private void CondFact(){
-        //TODO
+        Expr();
+        Relop();
+        Expr();
     }
 
     // Relop = "==" | "!=" | ">" | ">=" | "<" | "<=".
