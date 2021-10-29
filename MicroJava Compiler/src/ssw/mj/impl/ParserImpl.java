@@ -257,9 +257,24 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs​] ")".
+    // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs ] ")".
     private void ActPars(){
-        //TODO
+        check(lpar);
+        if(firstOfExpr.contains(sym)){
+            Expr();
+            for(;;){
+                if(sym == comma){
+                    scan();
+                    Expr();
+                }else{
+                    break;
+                }
+            }
+        }
+        if(sym == hash){
+            VarArgs();
+        }
+        check(rpar);
     }
 
     // VarArgs = "#" number [ Expr { "," Expr } ].
