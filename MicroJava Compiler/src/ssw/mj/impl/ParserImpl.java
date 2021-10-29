@@ -17,6 +17,11 @@ public final class ParserImpl extends Parser {
         super(scanner);
     }
 
+    private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon);
+    private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign, plusas, minusas, timesas, slashas);
+    private final EnumSet<Kind> firstOfFactor =EnumSet.of(ident, number, charConst, new_, lpar);
+    private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
+
     /**
      * Starts the analysis.
      */
@@ -143,9 +148,6 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident,if_,while_,break_,return_,read,print,lbrace,semicolon);
-    private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign,plusas,minusas,timesas,slashas);
-
     // Block = "{" { Statement } "}".
     private void Block(){
         check(lbrace);
@@ -166,6 +168,7 @@ public final class ParserImpl extends Parser {
     //           | ";".
     private void Statement(){
         switch(sym){
+
             case ident:
                 Designator();
                 if(sym == pplus || sym == mminus){
@@ -178,30 +181,68 @@ public final class ParserImpl extends Parser {
                 }
                 check(semicolon);
                 break;
+
             case if_:
-                //TODO
+                scan();
+                check(lpar);
+                Condition();
+                check(rpar);
+                Statement();
+                if(sym == else_){
+                    scan();
+                    Statement();
+                }
                 break;
+
             case while_:
-                //TODO
+                scan();
+                check(lpar);
+                Condition();
+                check(rpar);
+                Statement();
                 break;
+
             case break_:
-                //TODO
+                scan();
+                check(semicolon);
                 break;
+
             case return_:
-                //TODO
+                scan();
+                if(firstOfExpr.contains(sym)){
+                    Expr();
+                }
+                check(semicolon);
                 break;
+
             case read:
-                //TODO
+                scan();
+                check(lpar);
+                Designator();
+                check(rpar);
+                check(semicolon);
                 break;
+
             case print:
-                //TODO
+                scan();
+                check(lpar);
+                Expr();
+                if(sym == comma){
+                    scan();
+                    check(number);
+                }
+                check(rpar);
+                check(semicolon);
                 break;
+
             case lbrace:
-                //TODO
+                Block();
                 break;
+
             case semicolon:
-                //TODO
+                scan();
                 break;
+
             default:
                 error(INVALID_STAT);
         }
