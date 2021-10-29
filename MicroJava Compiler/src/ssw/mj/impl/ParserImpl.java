@@ -21,6 +21,7 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign, plusas, minusas, timesas, slashas);
     private final EnumSet<Kind> firstOfFactor =EnumSet.of(ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
+    private final EnumSet<Kind> firstOfRelop =EnumSet.of(eql, neq, gtr, geq, lss, leq);
 
     /**
      * Starts the analysis.
@@ -330,16 +331,31 @@ public final class ParserImpl extends Parser {
 
     // Relop = "==" | "!=" | ">" | ">=" | "<" | "<=".
     private void Relop(){
-        //TODO
+        if(firstOfRelop.contains(sym)){
+            scan();
+        }else{
+            error(REL_OP);
+        }
     }
 
     // Expr = [ "–" ] Term { Addop Term }.
     private void Expr(){
-        //TODO
+        if(sym == minus){
+            scan();
+        }
+        Term();
+        for(;;){
+            if(sym == plus || sym == minus){
+                Addop();
+                Term();
+            }else{
+                break;
+            }
+        }
     }
 
     // Term = Factor { Mulop Factor }.
-    private void Factor(){
+    private void Term(){
         //TODO
     }
 
@@ -348,6 +364,11 @@ public final class ParserImpl extends Parser {
     //      | charConst
     //      | "new" ident [ "[" Expr "]" ]
     //| "(" Expr ")".
+    private void Factor(){
+        //TODO
+    }
+
+    // Designator = ident { "." ident | "[" Expr "]" }.
     private void Designator() {
         check(ident);
         for(;;){
