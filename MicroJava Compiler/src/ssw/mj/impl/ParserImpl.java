@@ -296,13 +296,29 @@ public final class ParserImpl extends Parser {
     }
 
     // Condition = CondTerm { "||" CondTerm }.
-    private void Condition(){
-        //TODO
+    private void Condition() {
+        CondTerm();
+        for (;;) {
+            if (sym == or) {
+                scan();
+                CondTerm();
+            } else {
+                break;
+            }
+        }
     }
 
     // CondTerm = CondFact { "&&" CondFact }.
     private void CondTerm(){
-        //TODO
+        CondFact();
+        for (;;) {
+            if (sym == or) {
+                scan();
+                CondFact();
+            } else {
+                break;
+            }
+        }
     }
 
     // CondFact = Expr Relop Expr.
