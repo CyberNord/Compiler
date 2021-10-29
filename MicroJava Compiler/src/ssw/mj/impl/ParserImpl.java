@@ -144,6 +144,7 @@ public final class ParserImpl extends Parser {
     }
 
     private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident,if_,while_,break_,return_,read,print,lbrace,semicolon);
+    private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign,plusas,minusas,timesas,slashas);
 
     // Block = "{" { Statement } "}".
     private void Block(){
@@ -166,7 +167,16 @@ public final class ParserImpl extends Parser {
     private void Statement(){
         switch(sym){
             case ident:
-                //TODO
+                Designator();
+                if(sym == pplus || sym == mminus){
+                    scan();
+                }else if(firstOfAssignop.contains(sym)){
+                    Assignop();
+                    Expr();
+                }else if(sym == lpar){
+                    ActPars();
+                }
+                check(semicolon);
                 break;
             case if_:
                 //TODO
@@ -248,7 +258,19 @@ public final class ParserImpl extends Parser {
     //      | "new" ident [ "[" Expr "]" ]
     //| "(" Expr ")".
     private void Designator() {
-        //TODO
+        check(ident);
+        for(;;){
+            if(sym == period){
+                scan();
+                check(ident);
+            }else if(sym == lbrack){
+                scan();
+                Expr();
+                check(rbrack);
+            }else{
+                break;
+            }
+        }
     }
 
     // Addop = "+" | "–".
