@@ -279,7 +279,20 @@ public final class ParserImpl extends Parser {
 
     // VarArgs = "#" number [ Expr { "," Expr } ].
     private void VarArgs(){
-        //TODO
+        check(hash);
+        check(number);
+        if(firstOfExpr.contains(sym)){
+            Expr();
+            for(;;){
+                if(sym == comma){
+                    scan();
+                    Expr();
+                }else{
+                    break;
+                }
+            }
+        }
+
     }
 
     // Condition = CondTerm { "||" CondTerm }.
