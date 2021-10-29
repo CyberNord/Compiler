@@ -75,6 +75,8 @@ public final class ParserImpl extends Parser {
         check(assign);
         if(sym == number || sym == charConst){
             scan();
+        }else{
+            error(CONST_DECL);
         }
         check(semicolon);
     }
