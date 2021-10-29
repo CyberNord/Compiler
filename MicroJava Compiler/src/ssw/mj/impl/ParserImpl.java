@@ -424,12 +424,20 @@ public final class ParserImpl extends Parser {
 
     // Addop = "+" | "–".
     private void Addop() {
-    //TODO
+        if(firstOfAddop.contains(sym)){
+            scan();
+        }else{
+            error(ADD_OP);
+        }
     }
 
     // Mulop = "*" | "/" | "%".
     private void Mulop(){
-        //TODO
+        if(firstOfMulop.contains(sym)){
+            scan();
+        }else{
+            error(MUL_OP);
+        }
     }
 
 }
