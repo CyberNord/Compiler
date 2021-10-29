@@ -376,7 +376,32 @@ public final class ParserImpl extends Parser {
     //      | "new" ident [ "[" Expr "]" ]
     //| "(" Expr ")".
     private void Factor(){
-        //TODO
+            switch (sym){
+                case ident:
+                    Designator();
+                    if(sym == lpar){
+                        ActPars();
+                    }
+                    break;
+                case number: case charConst:
+                    scan();
+                    break;
+                case new_:
+                    scan();
+                    check(ident);
+                    if(sym == lbrack){
+                        scan();
+                        Expr();
+                        check(rbrack);
+                    }
+                    break;
+                case lpar:
+                    scan();
+                    Expr();
+                    check(rpar);
+                    break;
+            }
+
     }
 
     // Designator = ident { "." ident | "[" Expr "]" }.
