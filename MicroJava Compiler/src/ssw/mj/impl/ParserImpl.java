@@ -250,7 +250,11 @@ public final class ParserImpl extends Parser {
 
     // Assignop = "=" | "+=" | "-=" | "*=" | "/=" | "%=".
     private void Assignop(){
-        //TODO
+        if(firstOfAssignop.contains(sym)){
+            scan();
+        }else{
+            error(ASSIGN_OP);
+        }
     }
 
     // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs​] ")".
