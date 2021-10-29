@@ -400,8 +400,9 @@ public final class ParserImpl extends Parser {
                     Expr();
                     check(rpar);
                     break;
+                default:
+                    error(INVALID_FACT);
             }
-
     }
 
     // Designator = ident { "." ident | "[" Expr "]" }.
