@@ -4,8 +4,9 @@ import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
 
-import static ssw.mj.Errors.Message.METH_DECL;
-import static ssw.mj.Errors.Message.TOKEN_EXPECTED;
+import java.util.EnumSet;
+
+import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
 
 public final class ParserImpl extends Parser {
@@ -142,9 +143,15 @@ public final class ParserImpl extends Parser {
         }
     }
 
+    private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident,if_,while_,break_,return_,read,print,lbrace,semicolon);
+
     // Block = "{" { Statement } "}".
     private void Block(){
-        //TODO
+        check(lbrace);
+        while(firstOfStatement.contains(sym)){
+            Statement();
+        }
+        check(rbrace);
     }
 
     // Statement = Designator ( Assignop Expr | ActPars | "++" | "--" ) ";"
@@ -157,7 +164,37 @@ public final class ParserImpl extends Parser {
     //           | Block
     //           | ";".
     private void Statement(){
-        //TODO
+        switch(sym){
+            case ident:
+                //TODO
+                break;
+            case if_:
+                //TODO
+                break;
+            case while_:
+                //TODO
+                break;
+            case break_:
+                //TODO
+                break;
+            case return_:
+                //TODO
+                break;
+            case read:
+                //TODO
+                break;
+            case print:
+                //TODO
+                break;
+            case lbrace:
+                //TODO
+                break;
+            case semicolon:
+                //TODO
+                break;
+            default:
+                error(INVALID_STAT);
+        }
     }
 
     // Assignop = "=" | "+=" | "-=" | "*=" | "/=" | "%=".
