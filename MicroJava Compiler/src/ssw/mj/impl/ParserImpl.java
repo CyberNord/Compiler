@@ -177,6 +177,8 @@ public final class ParserImpl extends Parser {
                     Expr();
                 }else if(sym == lpar){
                     ActPars();
+                }else{
+                    error(DESIGN_FOLLOW);
                 }
                 check(semicolon);
                 break;
