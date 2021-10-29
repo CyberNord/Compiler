@@ -22,6 +22,8 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> firstOfFactor =EnumSet.of(ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfRelop =EnumSet.of(eql, neq, gtr, geq, lss, leq);
+    private final EnumSet<Kind> firstOfAddop =EnumSet.of(plus,minus);
+    private final EnumSet<Kind> firstOfMulop =EnumSet.of(times, slash, rem);
 
     /**
      * Starts the analysis.
@@ -345,7 +347,7 @@ public final class ParserImpl extends Parser {
         }
         Term();
         for(;;){
-            if(sym == plus || sym == minus){
+            if(firstOfAddop.contains(sym)){
                 Addop();
                 Term();
             }else{
@@ -356,7 +358,16 @@ public final class ParserImpl extends Parser {
 
     // Term = Factor { Mulop Factor }.
     private void Term(){
-        //TODO
+        Factor();
+        for(;;){
+            if(firstOfMulop.contains(sym)){
+                Mulop();
+                Term();
+            }else{
+                break;
+            }
+        }
+
     }
 
     // Factor = Designator [ ActPars ]
