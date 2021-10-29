@@ -83,11 +83,11 @@ public final class ParserImpl extends Parser {
     private void VarDecl(){
         Type();
         check(ident);
-        while (sym != semicolon){
-            check(comma);
+        while (sym == comma){
+            scan();
             check(ident);
         }
-        scan();
+        check(semicolon);
     }
 
     // ClassDecl = "class" ident "{" { VarDecl } "}".
@@ -115,7 +115,7 @@ public final class ParserImpl extends Parser {
         if(sym == ident){
             FormPars();
         }
-        check(lpar);
+        check(rpar);
         while (sym == ident){
             VarDecl();
         }
