@@ -19,7 +19,6 @@ public final class ParserImpl extends Parser {
 
     private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon);
     private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign, plusas, minusas, timesas, slashas);
-    private final EnumSet<Kind> firstOfFactor =EnumSet.of(ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfRelop =EnumSet.of(eql, neq, gtr, geq, lss, leq);
     private final EnumSet<Kind> firstOfAddop =EnumSet.of(plus,minus);
@@ -44,11 +43,6 @@ public final class ParserImpl extends Parser {
     private void check (Kind expected) {
         if (sym == expected) scan();
         else error(TOKEN_EXPECTED, expected);
-    }
-
-    private void error (String msg) {
-        System.out.println("line " + la.line + ", col " + la.col + ": " + msg);
-        System.exit(1);     // TODO
     }
 
     // Program = "program" ident { ConstDecl | VarDecl | ClassDecl } "{" {MethodDecl} "}".
