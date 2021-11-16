@@ -17,19 +17,22 @@ public final class ParserImpl extends Parser {
         super(scanner);
     }
 
-    private static final int MIN_ERR_DIST = 3;
+
+    // first Kinds of a grammar
     private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign, plusas, minusas, timesas, slashas);
     private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfRelop =EnumSet.of(eql, neq, gtr, geq, lss, leq);
     private final EnumSet<Kind> firstOfAddop =EnumSet.of(plus,minus);
     private final EnumSet<Kind> firstOfMulop =EnumSet.of(times, slash, rem);
-    // first Kinds of a grammar
     private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon);
+
     // recovery sets for error handling
     private final EnumSet<Kind> recoverStat = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon, eof); // TODO ident/lbrace catching symbol ?
     private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, class_, eof); // TODO VarDecl catching symbol (ident)
     private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, eof); // TODO ident catching symbol ?
+
     private int successfulScans = 0;
+    private static final int MIN_ERR_DIST = 3;
 
     /**
      * Starts the analysis.
