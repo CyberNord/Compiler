@@ -28,7 +28,7 @@ public final class ParserImpl extends Parser {
 
     // recovery sets for error handling
     private final EnumSet<Kind> recoverStat = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon, eof); // TODO ident/lbrace catching symbol ?
-    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, class_, eof); // TODO VarDecl catching symbol (ident)
+    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, ident, class_, lbrace, eof); // TODO ident/lbrace catching symbol ?
     private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, eof); // TODO ident catching symbol ?
 
     private int successfulScans = 0;
@@ -457,19 +457,25 @@ public final class ParserImpl extends Parser {
         }
     }
 
-    // recover at beginning of Declaration
+    // scan until next ConstDecl/VarDecl/ClassDecl
     private void recoverDecl(){
-        // TODO
+        while(!recoverDecl.contains(sym)){
+            scan();
+        }
     }
 
-    // recover at beginning of Method
+    // scan until next MethodDecl
     private void recoverMethodDecl(){
-        // TODO
+        while(!recoverMeth.contains(sym)){
+            scan();
+        }
     }
 
-    // recover at beginning of Statement
+    // scan until next Statement sub condition
     private void recoverStat(){
-        // TODO
+        while(!recoverStat.contains(sym)){
+            scan();
+        }
     }
 
 }
