@@ -17,12 +17,19 @@ public final class ParserImpl extends Parser {
         super(scanner);
     }
 
-    private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon);
+    private static final int MIN_ERR_DIST = 3;
     private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign, plusas, minusas, timesas, slashas);
     private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfRelop =EnumSet.of(eql, neq, gtr, geq, lss, leq);
     private final EnumSet<Kind> firstOfAddop =EnumSet.of(plus,minus);
     private final EnumSet<Kind> firstOfMulop =EnumSet.of(times, slash, rem);
+    // first Kinds of a grammar
+    private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon);
+    // recovery sets for error handling
+    private final EnumSet<Kind> recoverStat = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon, eof); // TODO ident/lbrace catching symbol ?
+    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, class_, eof); // TODO VarDecl catching symbol (ident)
+    private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, eof); // TODO ident catching symbol ?
+    private int successfulScans = 0;
 
     /**
      * Starts the analysis.
@@ -38,11 +45,13 @@ public final class ParserImpl extends Parser {
         t = la;
         la = scanner.next();
         sym = la.kind;
+        successfulScans++;
     }
 
     private void check (Kind expected) {
-        if (sym == expected) scan();
-        else error(TOKEN_EXPECTED, expected);
+        if (sym == expected) {
+            scan();
+        } else error(TOKEN_EXPECTED, expected);
     }
 
     // Program = "program" ident { ConstDecl | VarDecl | ClassDecl } "{" {MethodDecl} "}".
@@ -57,9 +66,16 @@ public final class ParserImpl extends Parser {
             }else if( sym == class_){
                 ClassDecl();
             }else{
+                // error(INVALID_DECL);
+                // recoverDecl();
                 break;
             }
         }
+
+//        if(tab.curScope.nVars() > MAX_GLOBALS) {
+//            error(TOO_MANY_GLOBALS);
+//        }
+
         check(lbrace);
         while(sym == ident || sym == void_) {
             MethodDecl();
@@ -436,6 +452,21 @@ public final class ParserImpl extends Parser {
         }else{
             error(MUL_OP);
         }
+    }
+
+    // recover at beginning of Declaration
+    private void recoverDecl(){
+        // TODO
+    }
+
+    // recover at beginning of Method
+    private void recoverMethodDecl(){
+        // TODO
+    }
+
+    // recover at beginning of Statement
+    private void recoverStat(){
+        // TODO
     }
 
 }
