@@ -1,5 +1,6 @@
 package ssw.mj.impl;
 
+import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
@@ -27,13 +28,13 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon);
 
     // recovery sets for error handling
-    private final EnumSet<Kind> recoverStat = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon, eof); // TODO ident/lbrace catching symbol ?
-    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, ident, class_, lbrace, eof); // TODO ident/lbrace catching symbol ?
-    private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, eof); // TODO ident catching symbol ?
+    private final EnumSet<Kind> recoverStat = EnumSet.of(if_, while_, break_, return_, read, print, rbrace, semicolon, eof);
+    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, ident, class_, lbrace, eof);
+    private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, eof);
 
-    private int successfulScans = 0;
+    private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
-
+    private static final int RESET_VAL = 0;
     /**
      * Starts the analysis.
      */
@@ -61,7 +62,7 @@ public final class ParserImpl extends Parser {
     private void Program(){
         check(program);
         check(ident);
-        while(true){
+        while(sym != eof && sym != lbrace){
             if(sym == final_){
                 ConstDecl();
             }else if(sym == ident){
@@ -69,19 +70,17 @@ public final class ParserImpl extends Parser {
             }else if( sym == class_){
                 ClassDecl();
             }else{
-                // error(INVALID_DECL);
-                // recoverDecl();
-                break;
+                error(INVALID_DECL);
+                recoverDecl();
             }
         }
-
-//        if(tab.curScope.nVars() > MAX_GLOBALS) {
-//            error(TOO_MANY_GLOBALS);
-//        }
-
         check(lbrace);
-        while(sym == ident || sym == void_) {
+        while(sym != rbrace && sym != eof) {
             MethodDecl();
+            // if there was an Error recently it will enter that
+            if(successfulScans == RESET_VAL){
+                recoverMethodDecl();
+            }
         }
         check(rbrace);
     }
@@ -169,8 +168,14 @@ public final class ParserImpl extends Parser {
     // Block = "{" { Statement } "}".
     private void Block(){
         check(lbrace);
-        while(firstOfStatement.contains(sym)){
-            Statement();
+//        while(firstOfStatement.contains(sym)){
+        if(successfulScans > RESET_VAL) {
+            while (sym != eof && sym != rbrace) {
+                Statement();
+                if (successfulScans == RESET_VAL) {
+                    recoverStat();
+                }
+            }
         }
         check(rbrace);
     }
@@ -462,6 +467,7 @@ public final class ParserImpl extends Parser {
         while(!recoverDecl.contains(sym)){
             scan();
         }
+        successfulScans = RESET_VAL;
     }
 
     // scan until next MethodDecl
@@ -469,6 +475,7 @@ public final class ParserImpl extends Parser {
         while(!recoverMeth.contains(sym)){
             scan();
         }
+        successfulScans = RESET_VAL;
     }
 
     // scan until next Statement sub condition
@@ -476,6 +483,15 @@ public final class ParserImpl extends Parser {
         while(!recoverStat.contains(sym)){
             scan();
         }
+        successfulScans = RESET_VAL;
+    }
+
+    @Override
+    public void error(Errors.Message msg, Object... msgParams) {
+        if (successfulScans >= MIN_ERR_DIST) {
+            scanner.errors.error(la.line, la.col, msg, msgParams);
+        }
+        successfulScans = RESET_VAL;
     }
 
 }
