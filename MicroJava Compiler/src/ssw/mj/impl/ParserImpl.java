@@ -18,14 +18,12 @@ public final class ParserImpl extends Parser {
         super(scanner);
     }
 
-
     // first Kinds of a grammar
     private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign, plusas, minusas, timesas, slashas);
     private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfRelop =EnumSet.of(eql, neq, gtr, geq, lss, leq);
     private final EnumSet<Kind> firstOfAddop =EnumSet.of(plus,minus);
     private final EnumSet<Kind> firstOfMulop =EnumSet.of(times, slash, rem);
-    private final EnumSet<Kind> firstOfStatement = EnumSet.of(ident, if_, while_, break_, return_, read, print, lbrace, semicolon);
 
     // recovery sets for error handling
     private final EnumSet<Kind> recoverStat = EnumSet.of(if_, while_, break_, return_, read, print, rbrace, semicolon, eof);
@@ -168,7 +166,7 @@ public final class ParserImpl extends Parser {
     // Block = "{" { Statement } "}".
     private void Block(){
         check(lbrace);
-//        while(firstOfStatement.contains(sym)){
+        // only Enter if there is no current error case active
         if(successfulScans > RESET_VAL) {
             while (sym != eof && sym != rbrace) {
                 Statement();
@@ -486,6 +484,7 @@ public final class ParserImpl extends Parser {
         successfulScans = RESET_VAL;
     }
 
+    // no Panic Mode
     @Override
     public void error(Errors.Message msg, Object... msgParams) {
         if (successfulScans >= MIN_ERR_DIST) {
