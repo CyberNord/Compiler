@@ -33,6 +33,7 @@ public final class ParserImpl extends Parser {
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
     private static final int RESET_VAL = 0;
+
     /**
      * Starts the analysis.
      */
@@ -77,6 +78,7 @@ public final class ParserImpl extends Parser {
             MethodDecl();
             // if there was an Error recently it will enter that
             if(successfulScans == RESET_VAL){
+                error(METH_DECL);
                 recoverMethodDecl();
             }
         }
