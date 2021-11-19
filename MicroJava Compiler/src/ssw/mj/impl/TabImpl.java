@@ -7,8 +7,7 @@ import ssw.mj.symtab.Scope;
 import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
-import static ssw.mj.Errors.Message.DECL_NAME;
-import static ssw.mj.Errors.Message.NOT_FOUND;
+import static ssw.mj.Errors.Message.*;
 import static ssw.mj.symtab.Obj.Kind.*;
 
 public final class TabImpl extends Tab {
@@ -98,7 +97,11 @@ public final class TabImpl extends Tab {
     // searches for a field
     // searches by name a field in a class, the struct of which is given in the interface.
     public Obj findField(String name, Struct struct){
-        return struct.findField(name);
+        Obj field = struct.findField(name);
+        if(field == null){
+            parser.error(NO_FIELD, name);
+        }
+        return field;
     }
 
 }
