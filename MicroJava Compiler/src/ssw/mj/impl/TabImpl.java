@@ -4,6 +4,7 @@ import ssw.mj.Parser;
 import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Obj.Kind;
 import ssw.mj.symtab.Scope;
+import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
 import static ssw.mj.Errors.Message.DECL_NAME;
@@ -20,8 +21,9 @@ public final class TabImpl extends Tab {
     public TabImpl(Parser p) {
         super(p);
         // Create Universe (-1)
-        curScope = new Scope(null);
-        curLevel = 0;
+        openScope();
+//        curScope = new Scope(null);
+//        curLevel = 0;
 
         // Standard Types
         insert(Type,"int",intType);
@@ -36,24 +38,24 @@ public final class TabImpl extends Tab {
         // Standard Methods (0)
         ordObj = insert(Meth, "chr", charType);
         openScope();
-        insert(Var, "i", intType);
-        // TODO .nPars .locals
+        insert(Var, "i", intType).level = 1;
+        ordObj.nPars = curScope.nVars();
+        ordObj.locals = curScope.locals();
         closeScope();
 
         chrObj = insert(Meth, "ord", intType);
         openScope();
-        insert(Var, "ch", charType);
-        // TODO .nPars .locals
+        insert(Var, "ch", charType).level = 1;
+        chrObj.nPars = curScope.nVars();
+        chrObj.locals = curScope.locals();
         closeScope();
 
         lenObj = insert(Meth, "len", intType);
         openScope();
-        insert(Var, "arr", noType);
-        // TODO .nPars .locals
+        insert(Var, "arr", noType).level = 1;
+        lenObj.nPars = curScope.nVars();
+        lenObj.locals = curScope.locals();
         closeScope();
-
-        curLevel = -1;
-
     }
 
     // defines a new scope and increases level
@@ -93,11 +95,10 @@ public final class TabImpl extends Tab {
         return obj;
     }
 
-    // searches by variable
-    // name a field in a class, the struct of which is given in the interface
-    public Obj findField(){
-        // TODO
-        return null;
+    // searches for a field
+    // searches by name a field in a class, the struct of which is given in the interface.
+    public Obj findField(String name, Struct struct){
+        return struct.findField(name);
     }
 
 }
