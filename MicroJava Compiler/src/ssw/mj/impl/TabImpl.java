@@ -21,8 +21,6 @@ public final class TabImpl extends Tab {
         super(p);
         // Create Universe (-1)
         openScope();
-//        curScope = new Scope(null);
-//        curLevel = 0;
 
         // Standard Types
         insert(Type,"int",intType);
@@ -33,28 +31,32 @@ public final class TabImpl extends Tab {
 
         // noObj from Lecture slides
         noObj = new Obj(Var, "none", noType);
+        curLevel++;
 
         // Standard Methods (0)
         ordObj = insert(Meth, "chr", charType);
         openScope();
-        insert(Var, "i", intType).level = 1;
+        insert(Var, "i", intType);
         ordObj.nPars = curScope.nVars();
         ordObj.locals = curScope.locals();
         closeScope();
 
         chrObj = insert(Meth, "ord", intType);
         openScope();
-        insert(Var, "ch", charType).level = 1;
+        insert(Var, "ch", charType);
         chrObj.nPars = curScope.nVars();
         chrObj.locals = curScope.locals();
         closeScope();
 
         lenObj = insert(Meth, "len", intType);
         openScope();
-        insert(Var, "arr", noType).level = 1;
+        insert(Var, "arr", noType);
         lenObj.nPars = curScope.nVars();
         lenObj.locals = curScope.locals();
         closeScope();
+
+        // reset to -1
+        curLevel--;
     }
 
     // defines a new scope and increases level
@@ -87,8 +89,10 @@ public final class TabImpl extends Tab {
     // searches for a name
     // starting in the current to the outermost area of validity
     public Obj find(String name){
+        // TODO run thru every scope in universe
         Obj obj = curScope.findLocal(name);
         if(obj  == null){
+            obj = noObj;
             parser.error(NOT_FOUND, name);
         }
         return obj;
@@ -97,8 +101,10 @@ public final class TabImpl extends Tab {
     // searches for a field
     // searches by name a field in a class, the struct of which is given in the interface.
     public Obj findField(String name, Struct struct){
+        // TODO check struct
         Obj field = struct.findField(name);
         if(field == null){
+            field = noObj;
             parser.error(NO_FIELD, name);
         }
         return field;
