@@ -20,8 +20,8 @@ public final class TabImpl extends Tab {
     public TabImpl(Parser p) {
         super(p);
         // Create Universe (-1)
-        openScope();
         curScope = new Scope(null);
+        curLevel = 0;
 
         // Standard Types
         insert(Type,"int",intType);
@@ -34,26 +34,25 @@ public final class TabImpl extends Tab {
         noObj = new Obj(Var, "none", noType);
 
         // Standard Methods (0)
-        ordObj = insert(Meth, "ord", intType);
+        ordObj = insert(Meth, "chr", charType);
         openScope();
         insert(Var, "i", intType);
-        chrObj.locals = curScope.locals();
-        chrObj.nPars = curScope.nVars();
+        // TODO .nPars .locals
         closeScope();
 
-        chrObj = insert(Meth, "chr", charType);
+        chrObj = insert(Meth, "ord", intType);
         openScope();
         insert(Var, "ch", charType);
-        chrObj.locals = curScope.locals();
-        chrObj.nPars = curScope.nVars();
+        // TODO .nPars .locals
         closeScope();
 
         lenObj = insert(Meth, "len", intType);
         openScope();
-        insert(Var, "arr", intType);
-        chrObj.locals = curScope.locals();
-        chrObj.nPars = curScope.nVars();
+        insert(Var, "arr", noType);
+        // TODO .nPars .locals
         closeScope();
+
+        curLevel = -1;
 
     }
 
@@ -76,6 +75,10 @@ public final class TabImpl extends Tab {
            parser.error(DECL_NAME, name);
         }
         final Obj obj = new Obj(kind, name, struct);
+        if(kind == Var){
+            obj.level = curLevel;
+            obj.adr = curScope.nVars();
+        }
         curScope.insert(obj);
         return obj;
     }
