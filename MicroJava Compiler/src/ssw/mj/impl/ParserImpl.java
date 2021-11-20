@@ -131,10 +131,20 @@ public final class ParserImpl extends Parser {
     private void ClassDecl(){
         check(class_);
         check(ident);
+        Obj clazz = tab.insert(Obj.Kind.Type, t.str, new StructImpl(StructImpl.Kind.Class));
+
         check(lbrace);
+        tab.openScope();
+
         while (sym == ident){
             VarDecl();
         }
+        if (tab.curScope.nVars() > MAX_FIELDS) {
+            error(TOO_MANY_FIELDS);
+        }
+        clazz.type.fields = tab.curScope.locals();
+        tab.closeScope();
+
         check(rbrace);
     }
 
