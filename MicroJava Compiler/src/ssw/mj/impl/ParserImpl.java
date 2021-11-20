@@ -4,6 +4,8 @@ import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
+import ssw.mj.symtab.Obj;
+import ssw.mj.symtab.Tab;
 
 import java.util.EnumSet;
 
@@ -61,6 +63,11 @@ public final class ParserImpl extends Parser {
     private void Program(){
         check(program);
         check(ident);
+
+        // Create program in universe and open program scope (0)
+        Obj program = tab.insert(Obj.Kind.Prog, t.str, Tab.noType);
+        tab.openScope();
+
         while(sym != eof && sym != lbrace){
             if(sym == final_){
                 ConstDecl();
@@ -73,6 +80,11 @@ public final class ParserImpl extends Parser {
                 recoverDecl();
             }
         }
+
+        if( tab.curScope.nVars() > MAX_GLOBALS){
+            error(TOO_MANY_GLOBALS);
+        }
+
         check(lbrace);
         while(sym != rbrace && sym != eof) {
             MethodDecl();
@@ -83,6 +95,9 @@ public final class ParserImpl extends Parser {
             }
         }
         check(rbrace);
+
+        program.locals = tab.curScope.locals();
+        tab.closeScope();
     }
 
     // ConstDecl = "final" Type ident "=" ( number | charConst ) ";".
@@ -101,11 +116,13 @@ public final class ParserImpl extends Parser {
 
     // VarDecl = Type ident { "," ident } ";".
     private void VarDecl(){
-        Type();
+        StructImpl type = Type();
         check(ident);
+        tab.insert(Obj.Kind.Var, t.str, type);
         while (sym == comma){
             scan();
             check(ident);
+            tab.insert(Obj.Kind.Var, t.str, type);
         }
         check(semicolon);
     }
@@ -157,12 +174,23 @@ public final class ParserImpl extends Parser {
     }
 
     // Type = ident [ "[" "]" ].
-    private void Type(){
+    private StructImpl Type(){
         check(ident);
+        Obj o = tab.find(t.str);
+
+        if (o.kind == null){
+            error(NOT_FOUND, t.str);
+        } else if (o.kind != Obj.Kind.Type) {
+            error(NO_TYPE);
+        }
+        StructImpl type = o.type;
+
         if(sym == lbrack){
             scan();
             check(rbrack);
+            return new StructImpl(type);
         }
+        return type;
     }
 
     // Block = "{" { Statement } "}".
