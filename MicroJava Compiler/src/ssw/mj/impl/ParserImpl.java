@@ -22,7 +22,7 @@ public final class ParserImpl extends Parser {
     }
 
     // first Kinds of a grammar
-    private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign, plusas, minusas, timesas, slashas);
+    private final EnumSet<Kind> firstOfAssignop = EnumSet.of(assign, plusas, minusas, timesas, slashas, remas);
     private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfRelop =EnumSet.of(eql, neq, gtr, geq, lss, leq);
     private final EnumSet<Kind> firstOfAddop =EnumSet.of(plus,minus);
@@ -174,13 +174,23 @@ public final class ParserImpl extends Parser {
         Obj meth = tab.insert(Obj.Kind.Meth, methodName, type);
         meth.adr = code.pc;
         check(lpar);
-
         tab.openScope();
+
         if(sym == ident){
             FormPars();
         }
         meth.nPars = tab.curScope.nVars();
         check(rpar);
+
+        if ("main".equals(methodName)) {
+            if(meth.nPars != 0){
+                error(MAIN_WITH_PARAMS);
+            }
+            if(meth.type != Tab.noType){
+                error(MAIN_NOT_VOID);
+            }
+        }
+
         while (sym == ident){
             VarDecl();
         }
