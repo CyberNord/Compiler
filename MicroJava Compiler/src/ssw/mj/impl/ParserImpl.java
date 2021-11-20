@@ -177,7 +177,7 @@ public final class ParserImpl extends Parser {
         tab.openScope();
 
         if(sym == ident){
-            FormPars();
+            FormPars(meth);
         }
         meth.nPars = tab.curScope.nVars();
         check(rpar);
@@ -204,7 +204,7 @@ public final class ParserImpl extends Parser {
     }
 
     // FormPars = Type ident { "," Type ident } [ ppperiod ].
-    private void FormPars(){
+    private void FormPars(Obj meth){
         Obj curr;
         for (;;) {
             StructImpl type = Type();
@@ -219,6 +219,7 @@ public final class ParserImpl extends Parser {
             if(curr != null) {
                 curr.hasVarArg = true;
                 curr.type = new StructImpl(curr.type);
+                meth.hasVarArg = true;
             }
             scan();
         }

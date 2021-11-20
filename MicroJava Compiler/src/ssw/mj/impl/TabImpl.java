@@ -90,7 +90,6 @@ public final class TabImpl extends Tab {
     // searches for a name
     // starting in the current to the outermost area of validity
     public Obj find(String name){
-        // TODO  Is that right?
         Obj obj = curScope.findGlobal(name);
         if(obj  == null){
             obj = noObj;
@@ -102,7 +101,6 @@ public final class TabImpl extends Tab {
     // searches for a field
     // searches by name a field in a class, the struct of which is given in the interface.
     public Obj findField(String name, Struct struct){
-        // TODO  Is that right?
         Obj field = struct.findField(name);
         if(field == null){
             field = noObj;
