@@ -33,9 +33,6 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, ident, class_, lbrace, eof);
     private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, eof);
 
-    // to avoid multiple checks in ConstDecl()
-    private final  EnumSet<Kind> constSymCheck = EnumSet.of(number, charConst);
-
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
     private static final int RESET_VAL = 0;
@@ -105,17 +102,16 @@ public final class ParserImpl extends Parser {
         check(final_);
         StructImpl type = Type();
         check(ident);
+        String typeName = t.str;
         check(assign);
 
-        // Error Cases
-        //
         if( type == null
-                || constSymCheck.contains(sym) && type.kind != Struct.Kind.Char
-                || constSymCheck.contains(sym) &&  type.kind != Struct.Kind.Int){
+                || sym == charConst && type.kind != Struct.Kind.Char
+                || sym == number && type.kind != Struct.Kind.Int){
             error(CONST_TYPE);
-        } else if(constSymCheck.contains(sym)){
+        } else if(sym == charConst ||sym == number ){
             scan();
-            Obj o = tab.insert(Obj.Kind.Con, t.str, type);
+            Obj o = tab.insert(Obj.Kind.Con, typeName, type);
             o.val = t.val;
         }else{
             error(CONST_DECL);
