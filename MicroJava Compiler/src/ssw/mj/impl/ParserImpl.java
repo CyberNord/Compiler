@@ -30,8 +30,8 @@ public final class ParserImpl extends Parser {
 
     // recovery sets for error handling
     private final EnumSet<Kind> recoverStat = EnumSet.of(if_, while_, break_, return_, read, print, rbrace, semicolon, eof);
-    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, ident, class_, lbrace, eof);
-    private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, eof);
+    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, ident, class_, lbrace, rbrace, eof);
+    private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, rbrace, eof);
 
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
@@ -127,7 +127,6 @@ public final class ParserImpl extends Parser {
         while (sym == comma){
             scan();
             check(ident);
-            // TODO Is this even right?
             if(t.str != null) {     // cancel multiple commas
                 tab.insert(Obj.Kind.Var, t.str, type);
             }else{
@@ -158,7 +157,7 @@ public final class ParserImpl extends Parser {
     }
 
     // MethodDecl = ( Type | "void" ) ident "(" [ FormPars ] ")" { VarDecl } Block.
-    private Obj MethodDecl(){
+    private void MethodDecl(){
         StructImpl type = Tab.noType;
         if( sym == ident){
             type = Type();
@@ -182,7 +181,8 @@ public final class ParserImpl extends Parser {
         meth.nPars = tab.curScope.nVars();
         check(rpar);
 
-        if ("main".equals(methodName)) {
+        // Error Case for main
+        if ("main".equals(methodName) && meth.name != null) {
             if(meth.nPars != 0){
                 error(MAIN_WITH_PARAMS);
             }
@@ -200,7 +200,6 @@ public final class ParserImpl extends Parser {
         Block();
         meth.locals = tab.curScope.locals();
         tab.closeScope();
-        return meth;
     }
 
     // FormPars = Type ident { "," Type ident } [ ppperiod ].
@@ -216,11 +215,9 @@ public final class ParserImpl extends Parser {
                 break;
         }
         if(sym == ppperiod ){
-            if(curr != null) {
-                curr.hasVarArg = true;
-                curr.type = new StructImpl(curr.type);
-                meth.hasVarArg = true;
-            }
+            curr.hasVarArg = true;
+            curr.type = new StructImpl(curr.type);
+            meth.hasVarArg = true;
             scan();
         }
     }

@@ -12,7 +12,7 @@ import static ssw.mj.symtab.Obj.Kind.*;
 
 public final class TabImpl extends Tab {
 
-    // TODO Exercise 4: implementation of symbol table
+    // DONE Exercise 4: implementation of symbol table
 
     /**
      * Set up "universe" (= predefined names).
