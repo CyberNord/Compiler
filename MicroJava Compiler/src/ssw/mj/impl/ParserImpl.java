@@ -156,7 +156,7 @@ public final class ParserImpl extends Parser {
     }
 
     // MethodDecl = ( Type | "void" ) ident "(" [ FormPars ] ")" { VarDecl } Block.
-    private void MethodDecl(){
+    private Obj MethodDecl(){
         StructImpl type = Tab.noType;
         if( sym == ident){
             type = Type();
@@ -166,15 +166,18 @@ public final class ParserImpl extends Parser {
             error(METH_DECL);
             recoverMethodDecl();
         }
+
         check(ident);
         String methodName = t.str;
         Obj meth = tab.insert(Obj.Kind.Meth, methodName, type);
         meth.adr = code.pc;
         check(lpar);
+
         tab.openScope();
         if(sym == ident){
             FormPars();
         }
+        meth.nPars = tab.curScope.nVars();
         check(rpar);
         while (sym == ident){
             VarDecl();
@@ -185,7 +188,7 @@ public final class ParserImpl extends Parser {
         Block();
         meth.locals = tab.curScope.locals();
         tab.closeScope();
-//        return meth;
+        return meth;
     }
 
     // FormPars = Type ident { "," Type ident } [ ppperiod ].

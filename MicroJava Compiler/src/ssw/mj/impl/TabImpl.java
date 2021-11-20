@@ -51,7 +51,7 @@ public final class TabImpl extends Tab {
 
         lenObj = insert(Meth, "len", intType);
         openScope();
-        insert(Var, "arr", noType);
+        insert(Var, "arr", new StructImpl(noType));
         lenObj.nPars = curScope.nVars();
         lenObj.locals = curScope.locals();
         closeScope();
