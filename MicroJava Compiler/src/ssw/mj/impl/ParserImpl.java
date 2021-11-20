@@ -130,6 +130,8 @@ public final class ParserImpl extends Parser {
             // TODO Is this even right?
             if(t.str != null) {     // cancel multiple commas
                 tab.insert(Obj.Kind.Var, t.str, type);
+            }else{
+                tab.insert(Obj.Kind.Var, "", type);
             }
         }
         check(semicolon);
@@ -371,7 +373,6 @@ public final class ParserImpl extends Parser {
 
     // VarArgs = "#" number [ Expr { "," Expr } ].
     private void VarArgs(){
-        //TODO
         check(hash);
         check(number);
         if(firstOfExpr.contains(sym)){
