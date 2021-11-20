@@ -127,7 +127,10 @@ public final class ParserImpl extends Parser {
         while (sym == comma){
             scan();
             check(ident);
-            tab.insert(Obj.Kind.Var, t.str, type);
+            // TODO Is this even right?
+            if(t.str != null) {     // cancel multiple commas
+                tab.insert(Obj.Kind.Var, t.str, type);
+            }
         }
         check(semicolon);
     }
@@ -153,7 +156,7 @@ public final class ParserImpl extends Parser {
     }
 
     // MethodDecl = ( Type | "void" ) ident "(" [ FormPars ] ")" { VarDecl } Block.
-    private Obj MethodDecl(){
+    private void MethodDecl(){
         StructImpl type = Tab.noType;
         if( sym == ident){
             type = Type();
@@ -182,19 +185,26 @@ public final class ParserImpl extends Parser {
         Block();
         meth.locals = tab.curScope.locals();
         tab.closeScope();
-        return meth;
+//        return meth;
     }
 
     // FormPars = Type ident { "," Type ident } [ ppperiod ].
     private void FormPars(){
-        Type();
-        check(ident);
-        while (sym == comma) {
-            scan();
-            Type();
+        Obj curr;
+        for (;;) {
+            StructImpl type = Type();
             check(ident);
+            curr = tab.insert(Obj.Kind.Var, t.str, type);
+            if (sym == comma)
+                scan();
+            else
+                break;
         }
-        if(sym == ppperiod){
+        if(sym == ppperiod ){
+            if(curr != null) {
+                curr.hasVarArg = true;
+                curr.type = new StructImpl(curr.type);
+            }
             scan();
         }
     }
@@ -358,6 +368,7 @@ public final class ParserImpl extends Parser {
 
     // VarArgs = "#" number [ Expr { "," Expr } ].
     private void VarArgs(){
+        //TODO
         check(hash);
         check(number);
         if(firstOfExpr.contains(sym)){
