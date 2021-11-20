@@ -5,6 +5,7 @@ import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
 import ssw.mj.symtab.Obj;
+import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
 import java.util.EnumSet;
@@ -31,6 +32,9 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> recoverStat = EnumSet.of(if_, while_, break_, return_, read, print, rbrace, semicolon, eof);
     private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, ident, class_, lbrace, eof);
     private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, eof);
+
+    // to avoid multiple checks in ConstDecl()
+    private final  EnumSet<Kind> constSymCheck = EnumSet.of(number, charConst);
 
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
@@ -87,12 +91,8 @@ public final class ParserImpl extends Parser {
 
         check(lbrace);
         while(sym != rbrace && sym != eof) {
+            // error handling & recovery are inside MethodDecl()
             MethodDecl();
-            // if there was an Error recently it will enter that
-            if(successfulScans == RESET_VAL){
-                error(METH_DECL);
-                recoverMethodDecl();
-            }
         }
         check(rbrace);
 
@@ -103,11 +103,20 @@ public final class ParserImpl extends Parser {
     // ConstDecl = "final" Type ident "=" ( number | charConst ) ";".
     private void ConstDecl(){
         check(final_);
-        Type();
+        StructImpl type = Type();
         check(ident);
         check(assign);
-        if(sym == number || sym == charConst){
+
+        // Error Cases
+        //
+        if( type == null
+                || constSymCheck.contains(sym) && type.kind != Struct.Kind.Char
+                || constSymCheck.contains(sym) &&  type.kind != Struct.Kind.Int){
+            error(CONST_TYPE);
+        } else if(constSymCheck.contains(sym)){
             scan();
+            Obj o = tab.insert(Obj.Kind.Con, t.str, type);
+            o.val = t.val;
         }else{
             error(CONST_DECL);
         }
@@ -144,21 +153,26 @@ public final class ParserImpl extends Parser {
         }
         clazz.type.fields = tab.curScope.locals();
         tab.closeScope();
-
         check(rbrace);
     }
 
     // MethodDecl = ( Type | "void" ) ident "(" [ FormPars ] ")" { VarDecl } Block.
-    private void MethodDecl(){
+    private Obj MethodDecl(){
+        StructImpl type = Tab.noType;
         if( sym == ident){
-            Type();
+            type = Type();
         }else if(sym == void_){
             scan();
         }else{
             error(METH_DECL);
+            recoverMethodDecl();
         }
         check(ident);
+        String methodName = t.str;
+        Obj meth = tab.insert(Obj.Kind.Meth, methodName, type);
+        meth.adr = code.pc;
         check(lpar);
+        tab.openScope();
         if(sym == ident){
             FormPars();
         }
@@ -166,7 +180,13 @@ public final class ParserImpl extends Parser {
         while (sym == ident){
             VarDecl();
         }
+        if(tab.curScope.nVars() > MAX_LOCALS) {
+            error(Errors.Message.TOO_MANY_LOCALS);
+        }
         Block();
+        meth.locals = tab.curScope.locals();
+        tab.closeScope();
+        return meth;
     }
 
     // FormPars = Type ident { "," Type ident } [ ppperiod ].
