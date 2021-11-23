@@ -129,8 +129,6 @@ public final class ParserImpl extends Parser {
             check(ident);
             if(t.str != null) {     // cancel multiple commas
                 tab.insert(Obj.Kind.Var, t.str, type);
-            }else{
-                tab.insert(Obj.Kind.Var, "", type);
             }
         }
         check(semicolon);
