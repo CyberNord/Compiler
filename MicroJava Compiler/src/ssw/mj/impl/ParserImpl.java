@@ -246,6 +246,7 @@ public final class ParserImpl extends Parser {
         if(successfulScans > RESET_VAL) {
             while (sym != eof && sym != rbrace) {
                 Statement();
+                // moved recover inside due advice of tutor
             }
         }
         check(rbrace);
