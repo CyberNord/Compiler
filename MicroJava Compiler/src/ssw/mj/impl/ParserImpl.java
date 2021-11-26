@@ -190,6 +190,7 @@ public final class ParserImpl extends Parser {
         while (sym == ident){
             VarDecl();
         }
+
         if(tab.curScope.nVars() > MAX_LOCALS) {
             error(Errors.Message.TOO_MANY_LOCALS);
         }
@@ -245,10 +246,6 @@ public final class ParserImpl extends Parser {
         if(successfulScans > RESET_VAL) {
             while (sym != eof && sym != rbrace) {
                 Statement();
-                if (successfulScans == RESET_VAL) {
-                    // Todo  check followers, as there could somewhere be an extra scan after an error -0,5
-                    recoverStat();
-                }
             }
         }
         check(rbrace);
@@ -344,6 +341,8 @@ public final class ParserImpl extends Parser {
 
             default:
                 error(INVALID_STAT);
+                recoverStat();
+                break;
         }
     }
 
