@@ -75,6 +75,9 @@ public final class TabImpl extends Tab {
     // creates a symbol list object, sets its attributes and adds it
     // in the curScope in the symbol list.
     public Obj insert(Kind kind, String name, StructImpl struct){
+        if(name == null || name.equals("")){
+            return noObj;
+        }
         if(curScope.findLocal(name) != null){
            parser.error(DECL_NAME, name);
         }

@@ -30,8 +30,8 @@ public final class ParserImpl extends Parser {
 
     // recovery sets for error handling
     private final EnumSet<Kind> recoverStat = EnumSet.of(if_, while_, break_, return_, read, print, rbrace, semicolon, eof);
-    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, ident, class_, lbrace, rbrace, eof);
-    private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, ident, rbrace, eof);
+    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, class_, lbrace, rbrace, eof);
+    private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, rbrace, eof);
 
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
@@ -127,9 +127,7 @@ public final class ParserImpl extends Parser {
         while (sym == comma){
             scan();
             check(ident);
-            if(t.str != null) {     // cancel multiple commas
-                tab.insert(Obj.Kind.Var, t.str, type);
-            }
+            tab.insert(Obj.Kind.Var, t.str, type);
         }
         check(semicolon);
     }
@@ -248,6 +246,7 @@ public final class ParserImpl extends Parser {
             while (sym != eof && sym != rbrace) {
                 Statement();
                 if (successfulScans == RESET_VAL) {
+                    // Todo  check followers, as there could somewhere be an extra scan after an error -0,5
                     recoverStat();
                 }
             }
@@ -539,7 +538,7 @@ public final class ParserImpl extends Parser {
 
     // scan until next ConstDecl/VarDecl/ClassDecl
     private void recoverDecl(){
-        while(!recoverDecl.contains(sym)){
+        while(!recoverDecl.contains(sym) || (sym == ident && tab.find(sym.label())==null)){
             scan();
         }
         successfulScans = RESET_VAL;
@@ -547,7 +546,7 @@ public final class ParserImpl extends Parser {
 
     // scan until next MethodDecl
     private void recoverMethodDecl(){
-        while(!recoverMeth.contains(sym)){
+        while(!recoverMeth.contains(sym) || (sym == ident && tab.find(sym.label())==null)){
             scan();
         }
         successfulScans = RESET_VAL;
