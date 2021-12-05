@@ -91,6 +91,13 @@ public final class ParserImpl extends Parser {
             // error handling & recovery are inside MethodDecl()
             MethodDecl();
         }
+
+        // main isn't there
+        Obj objMain = tab.find("main");
+        if (objMain == null || objMain.kind != Obj.Kind.Meth) {
+            error(METH_NOT_FOUND, "main");
+        }
+
         check(rbrace);
 
         program.locals = tab.curScope.locals();
