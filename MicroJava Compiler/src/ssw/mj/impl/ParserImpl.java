@@ -112,6 +112,12 @@ public final class ParserImpl extends Parser {
         String typeName = t.str;
         check(assign);
 
+//        // typeName already declared
+//        if(tab.find(typeName) != null) {
+//            error(DECL_NAME, typeName);
+//        }
+
+
         if( type == null
                 || sym == charConst && type.kind != Struct.Kind.Char
                 || sym == number && type.kind != Struct.Kind.Int){
