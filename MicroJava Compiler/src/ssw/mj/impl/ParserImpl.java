@@ -91,13 +91,6 @@ public final class ParserImpl extends Parser {
             // error handling & recovery are inside MethodDecl()
             MethodDecl();
         }
-
-        // main isn't there
-        Obj objMain = tab.find("main");
-        if (objMain == null || objMain.kind != Obj.Kind.Meth) {
-            error(METH_NOT_FOUND, "main");
-        }
-
         check(rbrace);
 
         program.locals = tab.curScope.locals();
@@ -111,12 +104,6 @@ public final class ParserImpl extends Parser {
         check(ident);
         String typeName = t.str;
         check(assign);
-
-//        // typeName already declared
-//        if(tab.find(typeName) != null) {
-//            error(DECL_NAME, typeName);
-//        }
-
 
         if( type == null
                 || sym == charConst && type.kind != Struct.Kind.Char
