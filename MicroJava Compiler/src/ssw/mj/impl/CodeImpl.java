@@ -57,9 +57,9 @@ public final class CodeImpl extends Code {
         }
     }
 
-    void assign(Operand operandA, Operand operandB) {
-        load(operandB);
-        store(operandA);
+    void assign(Operand target, Operand source) {
+        load(source);
+        store(target);
     }
 
     void store(Operand operand){
@@ -81,6 +81,5 @@ public final class CodeImpl extends Code {
                 break;
             default: parser.error(NO_VAR);
         }
-
     }
 }
