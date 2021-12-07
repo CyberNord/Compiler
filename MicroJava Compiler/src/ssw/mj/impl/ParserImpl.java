@@ -499,15 +499,21 @@ public final class ParserImpl extends Parser {
     //      | charConst
     //      | "new" ident [ "[" Expr "]" ]
     //| "(" Expr ")".
-    private void Factor(){
+    private Operand Factor(){
+        Operand opA = null; 
             switch (sym){
                 case ident:
-                    Designator();
+                    opA = Designator();
                     if(sym == lpar){
+
                         ActPars();
                     }
                     break;
-                case number: case charConst:
+                case number:
+                    opA = new Operand(t.val);
+                    scan();
+                    break;
+                case charConst:
                     scan();
                     break;
                 case new_:
@@ -526,7 +532,9 @@ public final class ParserImpl extends Parser {
                     break;
                 default:
                     error(INVALID_FACT);
+                    opA = null;
             }
+            return opA; 
     }
 
     // Designator = ident { "." ident | "[" Expr "]" }.
