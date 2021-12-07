@@ -3,7 +3,9 @@ package ssw.mj.impl;
 import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
+import ssw.mj.Token;
 import ssw.mj.Token.Kind;
+import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Struct;
@@ -438,19 +440,38 @@ public final class ParserImpl extends Parser {
     }
 
     // Expr = [ "–" ] Term { Addop Term }.
-    private void Expr(){
+    private Operand Expr(){
+        Operand opA;
         if(sym == minus){
             scan();
+            opA = Term();
+            if(opA.type != Tab.intType){ error(NO_INT_OP); }
+            if (opA.kind == Operand.Kind.Con) {
+                code.load(opA);
+                code.put(Code.OpCode.neg);
+            }
+        }else{
+            opA = Term();
+            if (opA.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
         }
-        Term();
         for(;;){
             if(firstOfAddop.contains(sym)){
+                code.load(opA);
                 Addop();
-                Term();
+                Token.Kind opKind = t.kind;
+                Operand opB = Term();
+                if(opB.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
+                code.load(opB);
+                if(opKind == minus){
+                    code.put(Code.OpCode.sub);
+                }else if(opKind == plus){
+                    code.put(Code.OpCode.add);
+                }
             }else{
                 break;
             }
         }
+        return opA;
     }
 
     // Term = Factor { Mulop Factor }.
