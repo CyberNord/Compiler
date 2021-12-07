@@ -19,79 +19,68 @@ public final class CodeImpl extends Code {
     // TODO Exercise 5 - 6: implementation of code generation
 
     // source: exercise slides
-    void load(Operand x) {
-        if(x == null) return;
-        switch (x.kind) {
-            case Con: loadConst(x.val); break;
+    void load(Operand operand) {
+        if(operand == null) return;
+        switch (operand.kind) {
+            case Con: loadConst(operand.val); break;
             case Local:
-                switch (x.adr) {
+                switch (operand.adr) {
                     case 0: put(OpCode.load_0); break;
                     case 1: put(OpCode.load_1); break;
                     case 2: put(OpCode.load_2); break;
                     case 3: put(OpCode.load_3); break;
-                    default: put(OpCode.load); put(x.adr); break;
+                    default: put(OpCode.load); put(operand.adr); break;
                 }
                 break;
-            case Static: put(OpCode.getstatic); put2(x.adr); break;
+            case Static: put(OpCode.getstatic); put2(operand.adr); break;
             case Stack: break; // nothing to do (already loaded)
-            case Fld: put(OpCode.getfield); put2(x.adr); break;
+            case Fld: put(OpCode.getfield); put2(operand.adr); break;
             case Elem:
-                if (x.type == Tab.charType) { put(OpCode.baload); }
+                if (operand.type == Tab.charType) { put(OpCode.baload); }
                 else { put(OpCode.aload); }
                 break;
             default: parser.error(NO_VAL);
         }
-        x.kind = Operand.Kind.Stack; // remember that value is now loaded
+        operand.kind = Operand.Kind.Stack; // remember that value is now loaded
     }
 
     private void loadConst(int val) {
         switch (val) {
-            case -1:
-                put(const_m1);
-                break;
-            case 0:
-                put(const_0);
-                break;
-            case 1:
-                put(const_1);
-                break;
-            case 2:
-                put(const_2);
-                break;
-            case 3:
-                put(const_3);
-                break;
-            case 4:
-                put(const_4);
-                break;
-            case 5:
-                put(const_5);
-                break;
-            default:
-                put(const_);
-                put4(val);
+            case -1:    put(const_m1);  break;
+            case 0:     put(const_0);   break;
+            case 1:     put(const_1);   break;
+            case 2:     put(const_2);   break;
+            case 3:     put(const_3);   break;
+            case 4:     put(const_4);   break;
+            case 5:     put(const_5);   break;
+            default:    put(const_);    put4(val);
         }
     }
 
-    void assign(Operand x, Operand y) {
-        load(y);
-        switch (x.kind) {
+    void assign(Operand operandA, Operand operandB) {
+        load(operandB);
+        store(operandA);
+    }
+
+    void store(Operand operand){
+        switch (operand.kind) {
             case Local:
-                switch (x.adr) {
+                switch (operand.adr) {
                     case 0: put(OpCode.store_0); break;
                     case 1: put(OpCode.store_1); break;
                     case 2: put(OpCode.store_2); break;
                     case 3: put(OpCode.store_3); break;
-                    default: put(OpCode.store); put(x.adr); break;
+                    default: put(OpCode.store); put(operand.adr); break;
                 }
                 break;
-            case Static: put(OpCode.putstatic); put2(x.adr); break;
-            case Fld: put(OpCode.putfield); put2(x.adr); break;
+            case Static: put(OpCode.putstatic); put2(operand.adr); break;
+            case Fld: put(OpCode.putfield); put2(operand.adr); break;
             case Elem:
-                if (x.type == Tab.charType) { put(OpCode.bastore); }
+                if (operand.type == Tab.charType) { put(OpCode.bastore); }
                 else { put(OpCode.astore); }
                 break;
             default: parser.error(NO_VAR);
         }
+
     }
 }
