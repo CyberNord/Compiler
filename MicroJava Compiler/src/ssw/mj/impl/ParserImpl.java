@@ -475,16 +475,22 @@ public final class ParserImpl extends Parser {
     }
 
     // Term = Factor { Mulop Factor }.
-    private void Term(){
-        Factor();
+    private Operand Term(){
+        Operand opA = Factor();
+        if(opA.type != Tab.intType){ error(NO_INT_OP); }
         for(;;){
             if(firstOfMulop.contains(sym)){
-                Mulop();
-                Factor();
+                Code.OpCode opCode = Mulop();
+                code.load(opA);
+                Operand opB = Factor();
+                if(opB.type != Tab.intType){ error(NO_INT_OP); }
+                code.load(opB);
+                code.put(opCode);
             }else{
                 break;
             }
         }
+        return opA;
 
     }
 
@@ -564,11 +570,16 @@ public final class ParserImpl extends Parser {
     }
 
     // Mulop = "*" | "/" | "%".
-    private void Mulop(){
-        if(firstOfMulop.contains(sym)){
-            scan();
+    private Code.OpCode Mulop(){
+        if(firstOfMulop.contains(sym)){     // (times, slash, rem)
+            switch (sym) {
+                case times: scan(); return Code.OpCode.mul;
+                case slash: scan(); return Code.OpCode.div;
+                default:    scan(); return Code.OpCode.rem;
+            }
         }else{
             error(MUL_OP);
+            return Code.OpCode.nop;
         }
     }
 
