@@ -505,29 +505,47 @@ public final class ParserImpl extends Parser {
                 case ident:
                     opA = Designator();
                     if(sym == lpar){
-
+                        opA.type = opA.obj.type;
+                        opA.kind = Operand.Kind.Stack;
                         ActPars();
                     }
                     break;
                 case number:
-                    opA = new Operand(t.val);
                     scan();
+                    opA = new Operand(t.val);
+                    code.load(opA);
                     break;
                 case charConst:
                     scan();
+                    opA = new Operand(t.val);
+                    opA.type = Tab.charType;
+                    code.load(opA);
                     break;
                 case new_:
                     scan();
                     check(ident);
+                    Obj obj = tab.find(t.str);
+                    if(obj.type.kind == Struct.Kind.None){ error(NO_TYPE); }
+                    StructImpl struct = obj.type;
                     if(sym == lbrack){
                         scan();
-                        Expr();
+                        Operand opB = Expr();
+                        if (opB.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
+                        code.load(opB);
+                        code.put(Code.OpCode.newarray);
+                        if(obj.type.kind == Struct.Kind.Char){
+                            code.put(0);
+                        }else{
+                            code.put(1);
+                        }
+                        opA = new Operand(new StructImpl(struct));
+                        opA.val = opB.val;
                         check(rbrack);
                     }
                     break;
                 case lpar:
                     scan();
-                    Expr();
+                    opA = Expr();
                     check(rpar);
                     break;
                 default:
