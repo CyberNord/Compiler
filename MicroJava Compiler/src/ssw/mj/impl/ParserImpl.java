@@ -5,6 +5,7 @@ import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
 import ssw.mj.codegen.Code;
+import ssw.mj.codegen.Code.OpCode;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Struct;
@@ -350,12 +351,22 @@ public final class ParserImpl extends Parser {
     }
 
     // Assignop = "=" | "+=" | "-=" | "*=" | "/=" | "%=".
-    private void Assignop(){
-        if(firstOfAssignop.contains(sym)){
-            scan();
+    private OpCode Assignop(){
+        OpCode code;
+        if(firstOfAssignop.contains(sym)){  // (assign, plusas, minusas, timesas, slashas, remas)
+            switch (sym){
+                case assign:    code = OpCode.store;   break;
+                case plusas:    code = OpCode.add;     break;
+                case minusas:   code = OpCode.sub;     break;
+                case timesas:   code = OpCode.mul;     break;
+                case slashas:   code = OpCode.div;     break;
+                default:        code = OpCode.rem;     break;
+            }
         }else{
+            code = Code.OpCode.nop;
             error(ASSIGN_OP);
         }
+        return code;
     }
 
     // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs ] ")".
@@ -374,6 +385,7 @@ public final class ParserImpl extends Parser {
         }
         if(sym == hash){
             VarArgs();
+            // TODO
         }
         check(rpar);
     }
@@ -580,7 +592,7 @@ public final class ParserImpl extends Parser {
     }
 
     // Addop = "+" | "–".
-    private Code.OpCode Addop() {
+    private OpCode Addop() {
         if(firstOfAddop.contains(sym)){     // (plus,minus)
             scan();
             if(sym == plus){
@@ -595,7 +607,7 @@ public final class ParserImpl extends Parser {
     }
 
     // Mulop = "*" | "/" | "%".
-    private Code.OpCode Mulop(){
+    private OpCode Mulop(){
         if(firstOfMulop.contains(sym)){     // (times, slash, rem)
             switch (sym) {
                 case times: scan(); return Code.OpCode.mul;
