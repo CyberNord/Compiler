@@ -4,7 +4,6 @@ import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
-import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Code.OpCode;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
@@ -333,9 +332,9 @@ public final class ParserImpl extends Parser {
                 check(lpar);
                 Operand readOp = Designator();
                 if(readOp.type.kind == Struct.Kind.Int){
-                    code.put(Code.OpCode.read);
+                    code.put(OpCode.read);
                 }else{
-                    code.put(Code.OpCode.bread);
+                    code.put(OpCode.bread);
                 }
                 code.store(readOp);
                 if(readOp.type.kind != Struct.Kind.Char && readOp.type.kind != Struct.Kind.Int){
@@ -345,15 +344,24 @@ public final class ParserImpl extends Parser {
                 check(semicolon);
                 break;
 
-            case print:
+            case print:         // dunno
                 scan();
                 check(lpar);
-                Expr();
+                Operand printOp = Expr();
+                code.load(printOp);
                 if(sym == comma){
                     scan();
                     check(number);
+                    code.load(new Operand(t.val));
+                }else {
+                    code.load(new Operand(1));
                 }
                 check(rpar);
+                if(printOp.type.kind == Struct.Kind.Int){
+                    code.put(OpCode.print);
+                }else{
+                    code.put(OpCode.bprint);
+                }
                 check(semicolon);
                 break;
 
