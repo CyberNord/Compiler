@@ -500,7 +500,7 @@ public final class ParserImpl extends Parser {
     //      | "new" ident [ "[" Expr "]" ]
     //| "(" Expr ")".
     private Operand Factor(){
-        Operand opA = null; 
+        Operand opA = null;
             switch (sym){
                 case ident:
                     opA = Designator();
@@ -550,7 +550,6 @@ public final class ParserImpl extends Parser {
                     break;
                 default:
                     error(INVALID_FACT);
-                    opA = null;
             }
             return opA; 
     }
