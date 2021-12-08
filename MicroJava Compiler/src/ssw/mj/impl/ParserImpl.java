@@ -586,11 +586,17 @@ public final class ParserImpl extends Parser {
     }
 
     // Addop = "+" | "–".
-    private void Addop() {
-        if(firstOfAddop.contains(sym)){
+    private Code.OpCode Addop() {
+        if(firstOfAddop.contains(sym)){     // (plus,minus)
             scan();
+            if(sym == plus){
+                return Code.OpCode.add;
+            }else{
+                return Code.OpCode.sub;
+            }
         }else{
             error(ADD_OP);
+            return Code.OpCode.nop;
         }
     }
 
