@@ -530,6 +530,7 @@ public final class ParserImpl extends Parser {
                 case number:
                     scan();
                     opA = new Operand(t.val);
+                    opA.type = Tab.intType;
                     code.load(opA);
                     break;
                 case charConst:
