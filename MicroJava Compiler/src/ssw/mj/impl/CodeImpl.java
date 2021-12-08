@@ -20,6 +20,11 @@ public final class CodeImpl extends Code {
 
     // source: exercise slides
     void load(Operand operand) {
+        loadOp(operand);
+        operand.kind = Operand.Kind.Stack; // remember that value is now loaded
+    }
+
+    void loadOp(Operand operand){
         if(operand == null) return;
         switch (operand.kind) {
             case Con: loadConst(operand.val); break;
@@ -41,7 +46,6 @@ public final class CodeImpl extends Code {
                 break;
             default: parser.error(NO_VAL);
         }
-        operand.kind = Operand.Kind.Stack; // remember that value is now loaded
     }
 
     private void loadConst(int val) {
@@ -80,6 +84,30 @@ public final class CodeImpl extends Code {
                 else { put(OpCode.astore); }
                 break;
             default: parser.error(NO_VAR);
+        }
+    }
+
+    // increments Operand val by value
+    public void increment(Operand operand, int value) {
+        if(operand.kind == Operand.Kind.Local){
+            put(inc);
+            put(operand.adr);
+            put(value);
+        }else{
+            duplicate(operand);
+            loadOp(operand);
+            loadOp(new Operand(value));
+            put(inc);
+            store(operand);
+        }
+    }
+
+    // creates a duplicate
+    private void duplicate(Operand operand) {
+        if (operand.kind == Operand.Kind.Fld) {
+            put(OpCode.dup);
+        } else if (operand.kind == Operand.Kind.Elem) {
+            put(OpCode.dup2);
         }
     }
 }
