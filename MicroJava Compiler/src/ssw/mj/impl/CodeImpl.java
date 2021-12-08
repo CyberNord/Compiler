@@ -94,7 +94,9 @@ public final class CodeImpl extends Code {
             put(operand.adr);
             put(value);
         }else{
-            duplicate(operand);
+            if(operand.kind == Operand.Kind.Fld ||operand.kind == Operand.Kind.Elem) {
+                duplicate(operand);
+            }
             loadOp(operand);
             loadOp(new Operand(value));
             put(inc);
@@ -106,7 +108,7 @@ public final class CodeImpl extends Code {
     private void duplicate(Operand operand) {
         if (operand.kind == Operand.Kind.Fld) {
             put(OpCode.dup);
-        } else if (operand.kind == Operand.Kind.Elem) {
+        } else {
             put(OpCode.dup2);
         }
     }

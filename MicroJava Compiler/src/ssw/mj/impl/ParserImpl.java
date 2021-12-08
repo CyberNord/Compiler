@@ -4,6 +4,7 @@ import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
+import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Code.OpCode;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
@@ -195,7 +196,7 @@ public final class ParserImpl extends Parser {
         while (sym == ident){
             VarDecl();
         }
-
+        code.dataSize = tab.curScope.nVars();
         if(tab.curScope.nVars() > MAX_LOCALS) {
             error(Errors.Message.TOO_MANY_LOCALS);
         }
@@ -282,12 +283,11 @@ public final class ParserImpl extends Parser {
                         scan();
                         code.increment(opA, 1);
                     }
-                }else if(firstOfAssignop.contains(sym)){
-                    OpCode opCode = Assignop();
-                    // TODO ask Mark
+                }else if(firstOfAssignop.contains(sym)){     // (assign, plusas, minusas, timesas, slashas, remas)
+                    OpCode opCode = Assignop();             // heavy shit
                     Operand opB  = Expr();
+                    // TODO
                 }else if(sym == lpar){
-                    // TODO ask Mark
                     ActPars();
                 }else{
                     error(DESIGN_FOLLOW);
@@ -331,7 +331,16 @@ public final class ParserImpl extends Parser {
             case read:
                 scan();
                 check(lpar);
-                Designator();
+                Operand readOp = Designator();
+                if(readOp.type.kind == Struct.Kind.Int){
+                    code.put(Code.OpCode.read);
+                }else{
+                    code.put(Code.OpCode.bread);
+                }
+                code.store(readOp);
+                if(readOp.type.kind != Struct.Kind.Char && readOp.type.kind != Struct.Kind.Int){
+                    error(READ_VALUE);
+                }
                 check(rpar);
                 check(semicolon);
                 break;
@@ -397,8 +406,7 @@ public final class ParserImpl extends Parser {
             }
         }
         if(sym == hash){
-            VarArgs();
-            // TODO
+            VarArgs(); // next HÜ
         }
         check(rpar);
     }
@@ -521,7 +529,7 @@ public final class ParserImpl extends Parser {
     //      | "new" ident [ "[" Expr "]" ]
     //| "(" Expr ")".
     private Operand Factor(){
-        Operand opA = null;
+        Operand opA;
             switch (sym){
                 case ident:
                     opA = Designator();
@@ -571,6 +579,7 @@ public final class ParserImpl extends Parser {
                             code.put2(obj.type.nrFields());
                         }
                     }
+                    opA = new Operand(objType);
                     break;
                 case lpar:
                     scan();
@@ -579,14 +588,15 @@ public final class ParserImpl extends Parser {
                     break;
                 default:
                     error(INVALID_FACT);
+                    opA = new Operand(0);
             }
             return opA; 
     }
 
     // Designator = ident { "." ident | "[" Expr "]" }.
     private Operand Designator() {
-        Operand x = new Operand(tab.find(t.str), this);
         check(ident);
+        Operand x = new Operand(tab.find(t.str), this);
         for(;;){
             if(sym == period){
                 if(x.type.kind != Struct.Kind.Class){ error(NO_CLASS_TYPE); }
