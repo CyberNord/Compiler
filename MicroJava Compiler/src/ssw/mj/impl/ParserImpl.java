@@ -548,6 +548,13 @@ public final class ParserImpl extends Parser {
                         opA = new Operand(new StructImpl(struct));
                         opA.val = opB.val;
                         check(rbrack);
+                    }else {
+                        if(obj.kind != Obj.Kind.Type || obj.type.kind != Struct.Kind.Class){
+                            error(Errors.Message.NO_CLASS_TYPE);
+                        }else{
+                            code.put(OpCode.new_);
+                            code.put2(obj.type.nrFields());
+                        }
                     }
                     break;
                 case lpar:
