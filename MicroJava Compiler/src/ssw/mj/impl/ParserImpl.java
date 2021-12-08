@@ -533,19 +533,18 @@ public final class ParserImpl extends Parser {
                     check(ident);
                     Obj obj = tab.find(t.str);
                     if(obj.type.kind == Struct.Kind.None){ error(NO_TYPE); }
-                    StructImpl struct = obj.type;
                     if(sym == lbrack){
                         scan();
                         Operand opB = Expr();
                         if (opB.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
                         code.load(opB);
                         code.put(OpCode.newarray);
-                        if(obj.type.kind == Struct.Kind.Char){
+                        if(obj.type == Tab.charType){
                             code.put(0);
                         }else{
                             code.put(1);
                         }
-                        opA = new Operand(new StructImpl(struct));
+                        opA = new Operand(new StructImpl(obj.type));
                         opA.val = opB.val;
                         check(rbrack);
                     }else {
