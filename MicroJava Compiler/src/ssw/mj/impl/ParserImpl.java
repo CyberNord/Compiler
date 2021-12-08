@@ -4,7 +4,6 @@ import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
-import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Code.OpCode;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
@@ -363,7 +362,7 @@ public final class ParserImpl extends Parser {
                 default:        code = OpCode.rem;     break;
             }
         }else{
-            code = Code.OpCode.nop;
+            code = OpCode.nop;
             error(ASSIGN_OP);
         }
         return code;
@@ -459,7 +458,7 @@ public final class ParserImpl extends Parser {
             if(opA.type != Tab.intType){ error(NO_INT_OP); }
             if (opA.kind == Operand.Kind.Con) {
                 code.load(opA);
-                code.put(Code.OpCode.neg);
+                code.put(OpCode.neg);
             }
         }else{
             opA = Term();
@@ -468,7 +467,7 @@ public final class ParserImpl extends Parser {
         for(;;){
             if(firstOfAddop.contains(sym)){
                 code.load(opA);
-                Code.OpCode addOp = Addop();
+                OpCode addOp = Addop();
                 Operand opB = Term();
                 if(opB.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
                 code.load(opB);
@@ -486,7 +485,7 @@ public final class ParserImpl extends Parser {
         if(opA.type != Tab.intType){ error(NO_INT_OP); }
         for(;;){
             if(firstOfMulop.contains(sym)){
-                Code.OpCode opCode = Mulop();
+                OpCode opCode = Mulop();
                 code.load(opA);
                 Operand opB = Factor();
                 if(opB.type != Tab.intType){ error(NO_INT_OP); }
@@ -538,7 +537,7 @@ public final class ParserImpl extends Parser {
                         Operand opB = Expr();
                         if (opB.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
                         code.load(opB);
-                        code.put(Code.OpCode.newarray);
+                        code.put(OpCode.newarray);
                         if(obj.type.kind == Struct.Kind.Char){
                             code.put(0);
                         }else{
@@ -596,13 +595,13 @@ public final class ParserImpl extends Parser {
         if(firstOfAddop.contains(sym)){     // (plus,minus)
             scan();
             if(sym == plus){
-                return Code.OpCode.add;
+                return OpCode.add;
             }else{
-                return Code.OpCode.sub;
+                return OpCode.sub;
             }
         }else{
             error(ADD_OP);
-            return Code.OpCode.nop;
+            return OpCode.nop;
         }
     }
 
@@ -610,13 +609,13 @@ public final class ParserImpl extends Parser {
     private OpCode Mulop(){
         if(firstOfMulop.contains(sym)){     // (times, slash, rem)
             switch (sym) {
-                case times: scan(); return Code.OpCode.mul;
-                case slash: scan(); return Code.OpCode.div;
-                default:    scan(); return Code.OpCode.rem;
+                case times: scan(); return OpCode.mul;
+                case slash: scan(); return OpCode.div;
+                default:    scan(); return OpCode.rem;
             }
         }else{
             error(MUL_OP);
-            return Code.OpCode.nop;
+            return OpCode.nop;
         }
     }
 
