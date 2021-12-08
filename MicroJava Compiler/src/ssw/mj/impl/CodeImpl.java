@@ -24,7 +24,7 @@ public final class CodeImpl extends Code {
         operand.kind = Operand.Kind.Stack; // remember that value is now loaded
     }
 
-    void loadOp(Operand operand){
+    private void loadOp(Operand operand){
         if(operand == null) return;
         switch (operand.kind) {
             case Con: loadConst(operand.val); break;
