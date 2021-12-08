@@ -280,10 +280,9 @@ public final class ParserImpl extends Parser {
                         scan();
                         code.increment(opA, 1);
                     }
-
                 }else if(firstOfAssignop.contains(sym)){
-                    Assignop();
-                    Expr();
+                    OpCode opCode = Assignop();
+                    Operand opB  = Expr();
                 }else if(sym == lpar){
                     ActPars();
                 }else{
@@ -543,23 +542,24 @@ public final class ParserImpl extends Parser {
                     scan();
                     check(ident);
                     Obj obj = tab.find(t.str);
-                    if(obj.type.kind == Struct.Kind.None){ error(NO_TYPE); }
+                    StructImpl objType = obj.type;
+                    if(objType.kind == Struct.Kind.None){ error(NO_TYPE); }
                     if(sym == lbrack){
                         scan();
                         Operand opB = Expr();
                         if (opB.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
                         code.load(opB);
                         code.put(OpCode.newarray);
-                        if(obj.type == Tab.charType){
+                        if(objType == Tab.charType){
                             code.put(0);
                         }else{
                             code.put(1);
                         }
-                        opA = new Operand(new StructImpl(obj.type));
+                        opA = new Operand(new StructImpl(objType));
                         opA.val = opB.val;
                         check(rbrack);
                     }else {
-                        if(obj.kind != Obj.Kind.Type || obj.type.kind != Struct.Kind.Class){
+                        if(obj.kind != Obj.Kind.Type || objType.kind != Struct.Kind.Class){
                             error(Errors.Message.NO_CLASS_TYPE);
                         }else{
                             code.put(OpCode.new_);
