@@ -3,7 +3,6 @@ package ssw.mj.impl;
 import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
-import ssw.mj.Token;
 import ssw.mj.Token.Kind;
 import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Operand;
@@ -457,16 +456,11 @@ public final class ParserImpl extends Parser {
         for(;;){
             if(firstOfAddop.contains(sym)){
                 code.load(opA);
-                Addop();
-                Token.Kind opKind = t.kind;
+                Code.OpCode addOp = Addop();
                 Operand opB = Term();
                 if(opB.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
                 code.load(opB);
-                if(opKind == minus){
-                    code.put(Code.OpCode.sub);
-                }else if(opKind == plus){
-                    code.put(Code.OpCode.add);
-                }
+                code.put(addOp);
             }else{
                 break;
             }
