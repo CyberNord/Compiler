@@ -457,6 +457,8 @@ public final class ParserImpl extends Parser {
             opA = Term();
             if(opA.type != Tab.intType){ error(NO_INT_OP); }
             if (opA.kind == Operand.Kind.Con) {
+                opA.val = -opA.val;
+            }else {
                 code.load(opA);
                 code.put(OpCode.neg);
             }
