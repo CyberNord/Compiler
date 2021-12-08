@@ -28,6 +28,7 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfRelop =EnumSet.of(eql, neq, gtr, geq, lss, leq);
     private final EnumSet<Kind> firstOfAddop =EnumSet.of(plus,minus);
+    private final EnumSet<Kind> firstOfQuickop =EnumSet.of(pplus,mminus);
     private final EnumSet<Kind> firstOfMulop =EnumSet.of(times, slash, rem);
 
     // recovery sets for error handling
@@ -264,12 +265,22 @@ public final class ParserImpl extends Parser {
     //           | Block
     //           | ";".
     private void Statement(){
+        Operand opA;
         switch(sym){
 
             case ident:
-                Designator();
-                if(sym == pplus || sym == mminus){
-                    scan();
+                opA = Designator();
+                if(firstOfQuickop.contains(sym)){   // (mminus,pplus)
+                    if(opA.obj != null && opA.obj.kind != Obj.Kind.Var){error(NO_VAR);}
+                    if(opA.type != Tab.intType){error(NO_INT_OP);}
+                    if(sym == mminus){
+                        scan();
+                        code.increment(opA, -1);
+                    }else{
+                        scan();
+                        code.increment(opA, 1);
+                    }
+
                 }else if(firstOfAssignop.contains(sym)){
                     Assignop();
                     Expr();
