@@ -36,6 +36,8 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, class_, lbrace, rbrace, eof);
     private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, rbrace, eof);
 
+    private static final EnumSet<Operand.Kind> assignableKinds = EnumSet.of(Operand.Kind.Elem, Operand.Kind.Local, Operand.Kind.Static, Operand.Kind.Fld);
+
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
     private static final int RESET_VAL = 0;
@@ -282,8 +284,10 @@ public final class ParserImpl extends Parser {
                     }
                 }else if(firstOfAssignop.contains(sym)){
                     OpCode opCode = Assignop();
+                    // TODO ask Mark
                     Operand opB  = Expr();
                 }else if(sym == lpar){
+                    // TODO ask Mark
                     ActPars();
                 }else{
                     error(DESIGN_FOLLOW);
@@ -530,7 +534,7 @@ public final class ParserImpl extends Parser {
                 case number:
                     scan();
                     opA = new Operand(t.val);
-                    opA.type = Tab.intType;
+//                    opA.type = Tab.intType;
                     code.load(opA);
                     break;
                 case charConst:
