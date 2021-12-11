@@ -180,7 +180,7 @@ public final class ParserImpl extends Parser {
         if(sym == ident) {
             FormPars(meth);
         }
-//        meth.nPars = tab.curScope.nVars();
+        meth.nPars = tab.curScope.nVars();      // pls dont crash my program again ;(
         check(rpar);
 
         // Error Case for main
