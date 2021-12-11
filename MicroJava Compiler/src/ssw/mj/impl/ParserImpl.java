@@ -167,6 +167,7 @@ public final class ParserImpl extends Parser {
         }else{
             error(METH_DECL);
             recoverMethodDecl();
+            type = tab.noObj.type;
         }
 
         check(ident);
@@ -176,10 +177,10 @@ public final class ParserImpl extends Parser {
         check(lpar);
         tab.openScope();
 
-        if(sym == ident){
+        if(sym == ident) {
             FormPars(meth);
         }
-        meth.nPars = tab.curScope.nVars();
+//        meth.nPars = tab.curScope.nVars();
         check(rpar);
 
         // Error Case for main
@@ -190,6 +191,7 @@ public final class ParserImpl extends Parser {
             if(meth.type != Tab.noType){
                 error(MAIN_NOT_VOID);
             }
+            code.mainpc = code.pc;
         }
 
         while (sym == ident){
@@ -205,12 +207,14 @@ public final class ParserImpl extends Parser {
     }
 
     // FormPars = Type ident { "," Type ident } [ ppperiod ].
-    private void FormPars(Obj meth){
+    private int FormPars(Obj meth){
+        int nParsInt = 0;
         Obj curr;
         for (;;) {
             StructImpl type = Type();
             check(ident);
             curr = tab.insert(Obj.Kind.Var, t.str, type);
+            nParsInt++;
             if (sym == comma)
                 scan();
             else
@@ -222,6 +226,7 @@ public final class ParserImpl extends Parser {
             meth.hasVarArg = true;
             scan();
         }
+        return nParsInt;
     }
 
     // Type = ident [ "[" "]" ].
@@ -301,9 +306,7 @@ public final class ParserImpl extends Parser {
                             error(Errors.Message.INCOMP_TYPES);
                         }
                     } else {
-                        if (opA.type != Tab.intType || opB.type != Tab.intType) {
-                            error(Errors.Message.NO_INT_OP);
-                        }
+                        if (opA.type != Tab.intType || opB.type != Tab.intType) {error(Errors.Message.NO_INT_OP);}
                         code.load(opB);
                         code.put(opCodeAss);
                         code.store(opA);
@@ -509,7 +512,7 @@ public final class ParserImpl extends Parser {
         if(sym == minus){
             scan();
             opA = Term();
-            if(opA.type != Tab.intType){ error(NO_INT_OP); }
+            if(opA.type != Tab.intType){error(NO_INT_OP); }
             if (opA.kind == Operand.Kind.Con) {
                 opA.val = -opA.val;
             }else {
@@ -518,14 +521,13 @@ public final class ParserImpl extends Parser {
             }
         }else{
             opA = Term();
-            if (opA.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
         }
         for(;;){
             if(firstOfAddop.contains(sym)){
                 code.load(opA);
                 OpCode addOp = Addop();
                 Operand opB = Term();
-                if(opB.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
+                if(opB.type.kind != Struct.Kind.Int){error(NO_INT_OP); }
                 code.load(opB);
                 code.put(addOp);
             }else{
@@ -538,13 +540,12 @@ public final class ParserImpl extends Parser {
     // Term = Factor { Mulop Factor }.
     private Operand Term(){
         Operand opA = Factor();
-        if(opA.type != Tab.intType){ error(NO_INT_OP); }
         for(;;){
             if(firstOfMulop.contains(sym)){
                 OpCode opCode = Mulop();
                 code.load(opA);
                 Operand opB = Factor();
-                if(opB.type != Tab.intType){ error(NO_INT_OP); }
+                if(opB.type != Tab.intType){error(NO_INT_OP); }
                 code.load(opB);
                 code.put(opCode);
             }else{
@@ -574,7 +575,7 @@ public final class ParserImpl extends Parser {
                 case number:
                     scan();
                     opA = new Operand(t.val);
-//                    opA.type = Tab.intType;
+                    opA.type = Tab.intType;
                     code.load(opA);
                     break;
                 case charConst:
@@ -592,7 +593,7 @@ public final class ParserImpl extends Parser {
                     if(sym == lbrack){
                         scan();
                         Operand opB = Expr();
-                        if (opB.type.kind != Struct.Kind.Int){ error(NO_INT_OP); }
+                        if (opB.type.kind != Struct.Kind.Int){error(NO_INT_OP); }
                         code.load(opB);
                         code.put(OpCode.newarray);
                         if(objType == Tab.charType){
@@ -643,7 +644,7 @@ public final class ParserImpl extends Parser {
                 scan();
                 code.load(x);
                 Operand y = Expr();
-                if(y.type != Tab.intType){ error(NO_INT_OP); }
+                if(y.type != Tab.intType){error(NO_INT_OP); }
                 code.load(y);
                 x.kind = Operand.Kind.Elem;
                 x.type = x.type.elemType;
