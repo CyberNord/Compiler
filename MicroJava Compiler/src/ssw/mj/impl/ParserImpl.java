@@ -289,26 +289,45 @@ public final class ParserImpl extends Parser {
                     }
                 }else if(firstOfAssignop.contains(sym)){     // (assign, plusas, minusas, timesas, slashas, remas)
                     OpCode opCodeAss = Assignop();
+                    Kind assignKind = t.kind;
 
-                    if (opCodeAss != OpCode.store) {
-                        code.duplicate(opA);
-                        code.loadOp(opA);
+                    if(assignKind != Kind.assign) {
+                        if(opA.kind == Operand.Kind.Fld){
+                            code.put(OpCode.dup);
+                        }
+                        else if (opA.kind == Operand.Kind.Elem){
+                            code.put(OpCode.dup2);
+                        }
+                        Operand.Kind kindDes = opA.kind;
+                        code.load(opA);
+                        opA.kind = kindDes;
                     }
-                    Operand opB  = Expr();
-
-                    if (opA.obj != null && opA.obj.kind != Obj.Kind.Var) {
+                    scan();     // was that my fault ?
+                    Operand opB = Expr();
+                    if(!assignableKinds.contains(opA.kind)){
                         error(Errors.Message.NO_VAR);
                     }
-                    if (opCodeAss == OpCode.store) {
-                        if (opB.type.assignableTo(opA.type)) {
-                            code.assign(opA, opB);
-                        } else {
-                            error(Errors.Message.INCOMP_TYPES);
-                        }
-                    } else {
-                        if (opA.type != Tab.intType || opB.type != Tab.intType) {error(Errors.Message.NO_INT_OP);}
+                    else if(!opA.type.compatibleWith(opB.type)){
+                        error(Errors.Message.INCOMP_TYPES);
+                    }else {
                         code.load(opB);
-                        code.put(opCodeAss);
+                        switch (assignKind) {
+                            case plusas:
+                                code.put(OpCode.add);
+                                break;
+                            case minusas:
+                                code.put(OpCode.sub);
+                                break;
+                            case timesas:
+                                code.put(OpCode.mul);
+                                break;
+                            case slashas:
+                                code.put(OpCode.div);
+                                break;
+                            case remas:
+                                code.put(OpCode.rem);
+                                break;
+                        }
                         code.store(opA);
                     }
                 }else if(sym == lpar){
