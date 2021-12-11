@@ -24,7 +24,7 @@ public final class CodeImpl extends Code {
         operand.kind = Operand.Kind.Stack; // remember that value is now loaded
     }
 
-    private void loadOp(Operand operand){
+    void loadOp(Operand operand){
         if(operand == null) return;
         switch (operand.kind) {
             case Con: loadConst(operand.val); break;
@@ -105,7 +105,7 @@ public final class CodeImpl extends Code {
     }
 
     // creates a duplicate
-    private void duplicate(Operand operand) {
+    void duplicate(Operand operand) {
         if (operand.kind == Operand.Kind.Fld) {
             put(OpCode.dup);
         } else {

@@ -283,9 +283,31 @@ public final class ParserImpl extends Parser {
                         code.increment(opA, 1);
                     }
                 }else if(firstOfAssignop.contains(sym)){     // (assign, plusas, minusas, timesas, slashas, remas)
-                    OpCode opCode = Assignop();             // heavy shit
+                    OpCode opCodeAss = Assignop();
+
+                    if (opCodeAss != OpCode.store) {
+                        code.duplicate(opA);
+                        code.loadOp(opA);
+                    }
                     Operand opB  = Expr();
-                    // TODO
+
+                    if (opA.obj != null && opA.obj.kind != Obj.Kind.Var) {
+                        error(Errors.Message.NO_VAR);
+                    }
+                    if (opCodeAss == OpCode.store) {
+                        if (opB.type.assignableTo(opA.type)) {
+                            code.assign(opA, opB);
+                        } else {
+                            error(Errors.Message.INCOMP_TYPES);
+                        }
+                    } else {
+                        if (opA.type != Tab.intType || opB.type != Tab.intType) {
+                            error(Errors.Message.NO_INT_OP);
+                        }
+                        code.load(opB);
+                        code.put(opCodeAss);
+                        code.store(opA);
+                    }
                 }else if(sym == lpar){
                     ActPars();
                 }else{
@@ -311,7 +333,9 @@ public final class ParserImpl extends Parser {
                 check(lpar);
                 Condition();
                 check(rpar);
+                tab.openScope();
                 Statement();
+                tab.closeScope();
                 break;
 
             case break_:
