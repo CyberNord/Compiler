@@ -62,7 +62,7 @@ public final class CodeImpl extends Code {
     }
 
     void assign(Operand target, Operand source) {
-        load(source);
+        loadOp(source);
         store(target);
     }
 

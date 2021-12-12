@@ -288,27 +288,32 @@ public final class ParserImpl extends Parser {
                         code.increment(opA, 1);
                     }
                 }else if(firstOfAssignop.contains(sym)){     // (assign, plusas, minusas, timesas, slashas, remas)
-                    OpCode opCodeAss = Assignop();
+                    OpCode opCodeAss = Assignop(); // TODO do I need that later?
                     Kind assignKind = t.kind;
 
                     if(assignKind != Kind.assign) {
                         if(opA.kind == Operand.Kind.Fld){
                             code.put(OpCode.dup);
-                        }
-                        else if (opA.kind == Operand.Kind.Elem){
+                        } else if (opA.kind == Operand.Kind.Elem){
                             code.put(OpCode.dup2);
+                        } else if (opCodeAss != OpCode.store) {
+                                code.duplicate(opA);
+                                code.loadOp(opA);
                         }
                         Operand.Kind kindDes = opA.kind;
                         code.load(opA);
                         opA.kind = kindDes;
                     }
-                    scan();     // was that my fault ?
+                    scan();     // TODO was that my fault or do I scan now to much ?
                     Operand opB = Expr();
-                    if(!assignableKinds.contains(opA.kind)){
-                        error(Errors.Message.NO_VAR);
-                    }
-                    else if(!opA.type.compatibleWith(opB.type)){
-                        error(Errors.Message.INCOMP_TYPES);
+                    if(opCodeAss == OpCode.store) {
+                        if (opB.type.assignableTo(opA.type)) {
+                            code.assign(opA, opB);
+                        } else {
+                            error(INCOMP_TYPES);
+                        }
+                    }else if (opA.type != Tab.intType || opB.type != Tab.intType){
+                        error(Errors.Message.NO_INT_OP);
                     }else {
                         code.load(opB);
                         switch (assignKind) {
