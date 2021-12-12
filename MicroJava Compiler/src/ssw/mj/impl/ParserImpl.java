@@ -310,29 +310,13 @@ public final class ParserImpl extends Parser {
                         if (opB.type.assignableTo(opA.type)) {
                             code.assign(opA, opB);
                         } else {
-                            error(INCOMP_TYPES);
+                            error(INCOMP_TYPES);            // TODO
                         }
                     }else if (opA.type != Tab.intType || opB.type != Tab.intType){
                         error(Errors.Message.NO_INT_OP);
-                    }else {
+                    }else{
                         code.load(opB);
-                        switch (assignKind) {
-                            case plusas:
-                                code.put(OpCode.add);
-                                break;
-                            case minusas:
-                                code.put(OpCode.sub);
-                                break;
-                            case timesas:
-                                code.put(OpCode.mul);
-                                break;
-                            case slashas:
-                                code.put(OpCode.div);
-                                break;
-                            case remas:
-                                code.put(OpCode.rem);
-                                break;
-                        }
+                        code.put(opCodeAss);        // (add, sub, mul, div, rem)
                         code.store(opA);
                     }
                 }else if(sym == lpar){
