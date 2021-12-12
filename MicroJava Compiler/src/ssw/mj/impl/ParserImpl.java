@@ -289,7 +289,9 @@ public final class ParserImpl extends Parser {
                         code.duplicate(opA);
                         code.loadOp(opA);
                     }
+
                     scan();                                     // TODO without that 4 Parser, 12 SymbolTable & 13 SimpleCodeGeneration tests won't work
+
                     Operand opB = Expr();
                     if(opA.obj != null && opA.obj.kind != Obj.Kind.Var) {error(NO_VAR);}
 
