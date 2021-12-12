@@ -402,20 +402,23 @@ public final class ParserImpl extends Parser {
                 if(printOp.type.kind != Struct.Kind.Int && printOp.type.kind != Struct.Kind.Char){
                     error(Errors.Message.PRINT_VALUE);
                 }
-                code.load(printOp);
+
                 if(sym == comma){
                     scan();
                     check(number);
-                    code.load(new Operand(t.val));
                 }else {
                     code.load(new Operand(1));
                 }
-                check(rpar);
                 if(printOp.type.kind == Struct.Kind.Int){
+                    code.load(printOp);
+                    code.loadConst(0);
                     code.put(OpCode.print);
-                }else{
+                }else if(printOp.type.kind == Struct.Kind.Char){
+                    code.load(printOp);
+                    code.loadConst(t.val);
                     code.put(OpCode.bprint);
                 }
+                check(rpar);
                 check(semicolon);
                 break;
 
