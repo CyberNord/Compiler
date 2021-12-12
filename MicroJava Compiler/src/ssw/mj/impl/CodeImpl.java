@@ -48,7 +48,7 @@ public final class CodeImpl extends Code {
         }
     }
 
-    private void loadConst(int val) {
+    void loadConst(int val) {
         switch (val) {
             case -1:    put(const_m1);  break;
             case 0:     put(const_0);   break;

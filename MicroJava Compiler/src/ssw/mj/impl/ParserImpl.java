@@ -297,8 +297,8 @@ public final class ParserImpl extends Parser {
                         } else if (opA.kind == Operand.Kind.Elem){
                             code.put(OpCode.dup2);
                         } else if (opCodeAss != OpCode.store) {
-                                code.duplicate(opA);
-                                code.loadOp(opA);
+                            code.duplicate(opA);
+                            code.loadOp(opA);
                         }
                         Operand.Kind kindDes = opA.kind;
                         code.load(opA);
@@ -399,6 +399,9 @@ public final class ParserImpl extends Parser {
                 scan();
                 check(lpar);
                 Operand printOp = Expr();
+                if(printOp.type.kind != Struct.Kind.Int && printOp.type.kind != Struct.Kind.Char){
+                    error(Errors.Message.PRINT_VALUE);
+                }
                 code.load(printOp);
                 if(sym == comma){
                     scan();
@@ -532,7 +535,7 @@ public final class ParserImpl extends Parser {
 
     // Expr = [ "–" ] Term { Addop Term }.
     private Operand Expr(){
-        Operand opA;
+        final Operand opA;
         if(sym == minus){
             scan();
             opA = Term();
@@ -548,8 +551,8 @@ public final class ParserImpl extends Parser {
         }
         for(;;){
             if(firstOfAddop.contains(sym)){
-                code.load(opA);
                 OpCode addOp = Addop();
+                code.load(opA);
                 Operand opB = Term();
                 if(opB.type.kind != Struct.Kind.Int){error(NO_INT_OP); }
                 code.load(opB);
