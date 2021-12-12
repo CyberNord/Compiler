@@ -275,9 +275,45 @@ public final class ParserImpl extends Parser {
         Operand opA;
         switch(sym){
 
+            // Designator ( Assignop Expr | ActPars | "++" | "--" ) ";"
             case ident:
                 opA = Designator();
-                if(firstOfQuickop.contains(sym)){   // (mminus,pplus)
+
+                // TODO fix that somehow or kill it fast
+                // Assignop Expr
+                if(firstOfAssignop.contains(sym)){     // (assign, plusas, minusas, timesas, slashas, remas)
+                    OpCode opCodeAss = Assignop();
+//                    Kind assignKind = t.kind;
+
+                    if(opCodeAss != OpCode.store && (opA.kind == Operand.Kind.Fld ||opA.kind == Operand.Kind.Elem)) {
+                        code.duplicate(opA);
+                        code.loadOp(opA);
+                    }
+                    scan();                                     // TODO without that 4 Parser, 12 SymbolTable & 13 SimpleCodeGeneration tests won't work
+                    Operand opB = Expr();
+                    if(opA.obj != null && opA.obj.kind != Obj.Kind.Var) {error(NO_VAR);}
+
+                    if(opCodeAss == OpCode.store) {
+                        if (opB.type.assignableTo(opA.type)) {
+                            code.assign(opA, opB);
+                        } else {
+                            error(INCOMP_TYPES);
+                        }
+                    }else{
+                        if (opA.type != Tab.intType || opB.type != Tab.intType){
+                            error(Errors.Message.NO_INT_OP);
+                        }
+                            code.load(opB);
+                            code.put(opCodeAss);        // (add, sub, mul, div, rem)
+                            code.store(opA);
+                    }
+
+                // ActPars
+                }else if(sym == lpar){
+                    ActPars();
+
+                // "++" | "--"
+                }else if(firstOfQuickop.contains(sym)){   // (mminus,pplus)
                     if(opA.obj != null && opA.obj.kind != Obj.Kind.Var){error(NO_VAR);}
                     if(opA.type != Tab.intType){error(NO_INT_OP);}
                     if(sym == mminus){
@@ -287,43 +323,12 @@ public final class ParserImpl extends Parser {
                         scan();
                         code.increment(opA, 1);
                     }
-                }else if(firstOfAssignop.contains(sym)){     // (assign, plusas, minusas, timesas, slashas, remas)
-                    OpCode opCodeAss = Assignop(); // TODO do I need that later?
-                    Kind assignKind = t.kind;
 
-                    if(assignKind != Kind.assign) {
-                        if(opA.kind == Operand.Kind.Fld){
-                            code.put(OpCode.dup);
-                        } else if (opA.kind == Operand.Kind.Elem){
-                            code.put(OpCode.dup2);
-                        } else if (opCodeAss != OpCode.store) {
-                            code.duplicate(opA);
-                            code.loadOp(opA);
-                        }
-                        Operand.Kind kindDes = opA.kind;
-                        code.load(opA);
-                        opA.kind = kindDes;
-                    }
-                    scan();     // TODO was that my fault or do I scan now to much ?
-                    Operand opB = Expr();
-                    if(opCodeAss == OpCode.store) {
-                        if (opB.type.assignableTo(opA.type)) {
-                            code.assign(opA, opB);
-                        } else {
-                            error(INCOMP_TYPES);            // TODO
-                        }
-                    }else if (opA.type != Tab.intType || opB.type != Tab.intType){
-                        error(Errors.Message.NO_INT_OP);
-                    }else{
-                        code.load(opB);
-                        code.put(opCodeAss);        // (add, sub, mul, div, rem)
-                        code.store(opA);
-                    }
-                }else if(sym == lpar){
-                    ActPars();
-                }else{
+                // Error in Designator ( Assignop Expr | ActPars | "++" | "--" )
+                } else{
                     error(DESIGN_FOLLOW);
                 }
+
                 check(semicolon);
                 break;
 
@@ -344,9 +349,9 @@ public final class ParserImpl extends Parser {
                 check(lpar);
                 Condition();
                 check(rpar);
-                tab.openScope();
+//                tab.openScope();
                 Statement();
-                tab.closeScope();
+//                tab.closeScope();
                 break;
 
             case break_:
@@ -379,7 +384,7 @@ public final class ParserImpl extends Parser {
                 check(semicolon);
                 break;
 
-            case print:         // dunno
+            case print:
                 scan();
                 check(lpar);
                 Operand printOp = Expr();
