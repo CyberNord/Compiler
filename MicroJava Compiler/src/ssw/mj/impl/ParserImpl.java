@@ -33,10 +33,11 @@ public final class ParserImpl extends Parser {
 
     // recovery sets for error handling
     private final EnumSet<Kind> recoverStat = EnumSet.of(if_, while_, break_, return_, read, print, rbrace, semicolon, eof);
-    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, class_, lbrace, rbrace, eof);
+    private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, class_, lbrace, /* rbrace, */ eof, ident);
     private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, rbrace, eof);
 
-    private static final EnumSet<Operand.Kind> assignableKinds = EnumSet.of(Operand.Kind.Elem, Operand.Kind.Local, Operand.Kind.Static, Operand.Kind.Fld);
+    // Todo delete later
+//    private static final EnumSet<Operand.Kind> assignableKinds = EnumSet.of(Operand.Kind.Elem, Operand.Kind.Local, Operand.Kind.Static, Operand.Kind.Fld);
 
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
@@ -279,20 +280,21 @@ public final class ParserImpl extends Parser {
             case ident:
                 opA = Designator();
 
-                // TODO fix that somehow or kill it fast
                 // Assignop Expr
                 if(firstOfAssignop.contains(sym)){     // (assign, plusas, minusas, timesas, slashas, remas)
                     OpCode opCodeAss = Assignop();
-//                    Kind assignKind = t.kind;
+
+                    if (opCodeAss != OpCode.store && (opA.kind == Operand.Kind.Meth || opA.kind == Operand.Kind.Cond)) {
+                        error(NO_VAR);
+                    }
 
                     if(opCodeAss != OpCode.store && (opA.kind == Operand.Kind.Fld ||opA.kind == Operand.Kind.Elem)) {
                         code.duplicate(opA);
                         code.loadOp(opA);
                     }
 
-                    scan();                                     // TODO without that 4 Parser, 12 SymbolTable & 13 SimpleCodeGeneration tests won't work
-
                     Operand opB = Expr();
+
                     if(opA.obj != null && opA.obj.kind != Obj.Kind.Var) {error(NO_VAR);}
 
                     if(opCodeAss == OpCode.store) {
@@ -305,16 +307,16 @@ public final class ParserImpl extends Parser {
                         if (opA.type != Tab.intType || opB.type != Tab.intType){
                             error(Errors.Message.NO_INT_OP);
                         }
-                            code.load(opB);
-                            code.put(opCodeAss);        // (add, sub, mul, div, rem)
-                            code.store(opA);
+                        code.load(opB);
+                        code.put(opCodeAss);        // (add, sub, mul, div, rem)
+                        code.store(opA);
                     }
 
-                // ActPars
+                    // ActPars
                 }else if(sym == lpar){
                     ActPars();
 
-                // "++" | "--"
+                    // "++" | "--"
                 }else if(firstOfQuickop.contains(sym)){   // (mminus,pplus)
                     if(opA.obj != null && opA.obj.kind != Obj.Kind.Var){error(NO_VAR);}
                     if(opA.type != Tab.intType){error(NO_INT_OP);}
@@ -326,7 +328,7 @@ public final class ParserImpl extends Parser {
                         code.increment(opA, 1);
                     }
 
-                // Error in Designator ( Assignop Expr | ActPars | "++" | "--" )
+                    // Error in -> Designator ( Assignop Expr | ActPars | "++" | "--" )"
                 } else{
                     error(DESIGN_FOLLOW);
                 }
@@ -433,12 +435,12 @@ public final class ParserImpl extends Parser {
         OpCode code;
         if(firstOfAssignop.contains(sym)){  // (assign, plusas, minusas, timesas, slashas, remas)
             switch (sym){
-                case assign:    code = OpCode.store;   break;
-                case plusas:    code = OpCode.add;     break;
-                case minusas:   code = OpCode.sub;     break;
-                case timesas:   code = OpCode.mul;     break;
-                case slashas:   code = OpCode.div;     break;
-                default:        code = OpCode.rem;     break;
+                case assign:    code = OpCode.store;  scan(); break;
+                case plusas:    code = OpCode.add;    scan(); break;
+                case minusas:   code = OpCode.sub;    scan(); break;
+                case timesas:   code = OpCode.mul;    scan(); break;
+                case slashas:   code = OpCode.div;    scan(); break;
+                default:        code = OpCode.rem;    scan(); break;
             }
         }else{
             code = OpCode.nop;
@@ -632,8 +634,8 @@ public final class ParserImpl extends Parser {
                             code.put(OpCode.new_);
                             code.put2(obj.type.nrFields());
                         }
+                        opA = new Operand(objType);
                     }
-                    opA = new Operand(objType);
                     break;
                 case lpar:
                     scan();
