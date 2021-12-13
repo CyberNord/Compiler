@@ -17,7 +17,7 @@ public final class StructImpl extends Struct {
         super(elemType);
     }
 
-    // TODO Exercise 5: checks for different kinds of type compatibility
+    // DONE Exercise 5: checks for different kinds of type compatibility
 
     private boolean isRefType() {
         return kind == Kind.Class ||
