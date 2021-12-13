@@ -440,14 +440,11 @@ public final class ParserImpl extends Parser {
                     width = t.val;
                 }
 
-                // TODO codeclean
+                code.load(printOp);
+                code.loadConst(width);
                 if(printOp.type.kind == Struct.Kind.Int){
-                    code.load(printOp);
-                    code.loadConst(width);
                     code.put(OpCode.print);
                 }else if(printOp.type.kind == Struct.Kind.Char){
-                    code.load(printOp);
-                    code.loadConst(width);
                     code.put(OpCode.bprint);
                 }
 
@@ -605,11 +602,11 @@ public final class ParserImpl extends Parser {
     private Operand Term(){
         Operand opA = Factor();
         for(;;){
-            if(firstOfMulop.contains(sym)){
+            if(firstOfMulop.contains(sym)){ // (times, slash, rem)
                 OpCode opCode = Mulop();
                 code.load(opA);
                 Operand opB = Factor();
-                if(opB.type != Tab.intType){error(NO_INT_OP); }
+                if(opB.type != Tab.intType|| opA != null && opA.type.kind != Struct.Kind.Int ){error(NO_INT_OP); }
                 code.load(opB);
                 code.put(opCode);
             }else{
