@@ -24,7 +24,7 @@ public final class TabImpl extends Tab {
         openScope();
 
         // Standard Types
-        insert(Type,"int",intType);
+        insert(Type, "int", intType);
         insert(Type, "char", charType);
 
         // Standard Constants
@@ -61,28 +61,28 @@ public final class TabImpl extends Tab {
     }
 
     // defines a new scope and increases level
-    public void openScope(){
+    public void openScope() {
         curScope = new Scope(curScope);
         curLevel++;
     }
 
     // deletes curScope and decreases level
-    public void  closeScope(){
+    public void closeScope() {
         curScope = curScope.outer();
         curLevel--;
     }
 
     // creates a symbol list object, sets its attributes and adds it
     // in the curScope in the symbol list.
-    public Obj insert(Kind kind, String name, StructImpl struct){
-        if(name == null || name.equals("")){
+    public Obj insert(Kind kind, String name, StructImpl struct) {
+        if (name == null || name.equals("")) {
             return noObj;
         }
-        if(curScope.findLocal(name) != null){
-           parser.error(DECL_NAME, name);
+        if (curScope.findLocal(name) != null) {
+            parser.error(DECL_NAME, name);
         }
         final Obj obj = new Obj(kind, name, struct);
-        if(kind == Var){
+        if (kind == Var) {
             obj.level = curLevel;
             obj.adr = curScope.nVars();
         }
@@ -92,20 +92,20 @@ public final class TabImpl extends Tab {
 
     // searches for a name
     // starting in the current to the outermost area of validity
-    public Obj find(String name){
+    public Obj find(String name) {
         Obj obj = curScope.findGlobal(name);
-        if(obj  == null){
+        if (obj == null) {
             obj = noObj;
             parser.error(NOT_FOUND, name);
         }
         return obj;
     }
 
-    // searches for a field
-    // searches by name a field in a class, the struct of which is given in the interface.
-    public Obj findField(String name, Struct struct){
+    //     searches for a field
+    //     searches by name a field in a class, the struct of which is given in the interface.
+    public Obj findField(String name, Struct struct) {
         Obj field = struct.findField(name);
-        if(field == null){
+        if (field == null|| struct.kind != Struct.Kind.Class || struct.findField(name) == null) {
             field = noObj;
             parser.error(NO_FIELD, name);
         }

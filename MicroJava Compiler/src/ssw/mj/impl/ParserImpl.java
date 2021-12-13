@@ -36,7 +36,7 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, class_, lbrace, /* rbrace, */ eof, ident);
     private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, rbrace, eof);
 
-    // Todo delete later
+    // Todo delete if not needed
 //    private static final EnumSet<Operand.Kind> assignableKinds = EnumSet.of(Operand.Kind.Elem, Operand.Kind.Local, Operand.Kind.Static, Operand.Kind.Fld);
 
     private int successfulScans = 3;
@@ -98,6 +98,14 @@ public final class ParserImpl extends Parser {
             MethodDecl();
         }
         check(rbrace);
+
+        final Obj main = tab.curScope.findLocal("main");
+        if (main == null || main.kind != Obj.Kind.Meth) {
+            error(METH_NOT_FOUND, "main");
+        }
+//        else {
+//            code.mainpc = main.adr;       // TODO delete if not needed
+//        }
 
         program.locals = tab.curScope.locals();
         tab.closeScope();
@@ -181,7 +189,7 @@ public final class ParserImpl extends Parser {
         if(sym == ident) {
             FormPars(meth);
         }
-        meth.nPars = tab.curScope.nVars();      // pls don't crash my program again ;(
+        meth.nPars = tab.curScope.nVars();
         check(rpar);
 
         // Error Case for main
@@ -202,20 +210,36 @@ public final class ParserImpl extends Parser {
         if(tab.curScope.nVars() > MAX_LOCALS) {
             error(Errors.Message.TOO_MANY_LOCALS);
         }
+
+        if (meth.kind == Obj.Kind.Meth) {
+            meth.adr = code.pc;
+            code.put(OpCode.enter);
+            code.put(meth.nPars);
+            code.put(tab.curScope.nVars());
+        }
+
         Block();
+
         meth.locals = tab.curScope.locals();
+
+        if (meth.type != Tab.noType) {
+            code.put(OpCode.trap);
+            code.put(1);
+        } else {
+            code.put(OpCode.exit);
+            code.put(OpCode.return_);
+        }
+
         tab.closeScope();
     }
 
     // FormPars = Type ident { "," Type ident } [ ppperiod ].
-    private int FormPars(Obj meth){
-        int nParsInt = 0;
+    private void FormPars(Obj meth){
         Obj curr;
         for (;;) {
             StructImpl type = Type();
             check(ident);
             curr = tab.insert(Obj.Kind.Var, t.str, type);
-            nParsInt++;
             if (sym == comma)
                 scan();
             else
@@ -227,7 +251,6 @@ public final class ParserImpl extends Parser {
             meth.hasVarArg = true;
             scan();
         }
-        return nParsInt;
     }
 
     // Type = ident [ "[" "]" ].
@@ -235,7 +258,7 @@ public final class ParserImpl extends Parser {
         check(ident);
         Obj o = tab.find(t.str);
 
-        if (o.kind == null){
+        if (o.kind == null){        // TODo right place for error handling? --> find()
             error(NOT_FOUND, t.str);
         } else if (o.kind != Obj.Kind.Type) {
             error(NO_TYPE);
@@ -314,12 +337,16 @@ public final class ParserImpl extends Parser {
 
                     // ActPars
                 }else if(sym == lpar){
+                    // TODO do I need that? ActPars
+//                    if (opA.kind != Operand.Kind.Meth) error(NO_METH);
                     ActPars();
+//                    code.call(opA);
+//                    if (opA.type != Tab.noType) code.put(OpCode.pop);
 
                     // "++" | "--"
                 }else if(firstOfQuickop.contains(sym)){   // (mminus,pplus)
+                    if(opA.type != Tab.intType){error(NO_INT);}
                     if(opA.obj != null && opA.obj.kind != Obj.Kind.Var){error(NO_VAR);}
-                    if(opA.type != Tab.intType){error(NO_INT_OP);}
                     if(sym == mminus){
                         scan();
                         code.increment(opA, -1);
@@ -363,7 +390,7 @@ public final class ParserImpl extends Parser {
                 check(semicolon);
                 break;
 
-            case return_:
+            case return_:           // TODO implement return_
                 scan();
                 if(firstOfExpr.contains(sym)){
                     Expr();
@@ -377,10 +404,11 @@ public final class ParserImpl extends Parser {
                 Operand readOp = Designator();
                 if(readOp.type.kind == Struct.Kind.Int){
                     code.put(OpCode.read);
-                }else{
+                    code.assign(readOp,new Operand(Tab.intType));
+                }else if(readOp.type.kind == Struct.Kind.Char){
                     code.put(OpCode.bread);
+                    code.assign(readOp,new Operand(Tab.charType));
                 }
-                code.store(readOp);
                 if(readOp.type.kind != Struct.Kind.Char && readOp.type.kind != Struct.Kind.Int){
                     error(READ_VALUE);
                 }
@@ -399,9 +427,10 @@ public final class ParserImpl extends Parser {
                 if(sym == comma){
                     scan();
                     check(number);
-                }else {
+                } else {                            // Todo not sure if i really need that
                     code.load(new Operand(1));
                 }
+
                 if(printOp.type.kind == Struct.Kind.Int){
                     code.load(printOp);
                     code.loadConst(0);
