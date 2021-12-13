@@ -101,9 +101,6 @@ public final class ParserImpl extends Parser {
         if (main == null || main.kind != Obj.Kind.Meth) {
             error(METH_NOT_FOUND, "main");
         }
-//        else {
-//            code.mainpc = main.adr;       // TODO delete if not needed
-//        }
 
         program.locals = tab.curScope.locals();
         tab.closeScope();
@@ -135,11 +132,15 @@ public final class ParserImpl extends Parser {
     private void VarDecl(){
         StructImpl type = Type();
         check(ident);
-        tab.insert(Obj.Kind.Var, t.str, type);
+        if(type != Tab.noType) {
+            tab.insert(Obj.Kind.Var, t.str, type);
+        }
         while (sym == comma){
             scan();
             check(ident);
-            tab.insert(Obj.Kind.Var, t.str, type);
+            if(type != Tab.noType) {
+                tab.insert(Obj.Kind.Var, t.str, type);
+            }
         }
         check(semicolon);
     }
