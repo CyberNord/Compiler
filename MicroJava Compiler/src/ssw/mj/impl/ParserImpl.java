@@ -432,23 +432,25 @@ public final class ParserImpl extends Parser {
                 if(printOp.type.kind != Struct.Kind.Int && printOp.type.kind != Struct.Kind.Char){
                     error(Errors.Message.PRINT_VALUE);
                 }
+                int width = 0;
 
                 if(sym == comma){
                     scan();
                     check(number);
-                } else {                            // Todo not sure if i really need that
-                    code.load(new Operand(1));
+                    width = t.val;
                 }
 
+                // TODO codeclean
                 if(printOp.type.kind == Struct.Kind.Int){
                     code.load(printOp);
-                    code.loadConst(0);
+                    code.loadConst(width);
                     code.put(OpCode.print);
                 }else if(printOp.type.kind == Struct.Kind.Char){
                     code.load(printOp);
-                    code.loadConst(t.val);
+                    code.loadConst(width);
                     code.put(OpCode.bprint);
                 }
+
                 check(rpar);
                 check(semicolon);
                 break;
