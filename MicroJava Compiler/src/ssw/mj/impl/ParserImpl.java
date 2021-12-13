@@ -42,6 +42,7 @@ public final class ParserImpl extends Parser {
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
     private static final int RESET_VAL = 0;
+    private Obj currMeth;
 
     /**
      * Starts the analysis.
@@ -181,23 +182,23 @@ public final class ParserImpl extends Parser {
 
         check(ident);
         String methodName = t.str;
-        Obj meth = tab.insert(Obj.Kind.Meth, methodName, type);
-        meth.adr = code.pc;
+        currMeth = tab.insert(Obj.Kind.Meth, methodName, type);
+        currMeth.adr = code.pc;
         check(lpar);
         tab.openScope();
 
         if(sym == ident) {
-            FormPars(meth);
+            FormPars(currMeth);
         }
-        meth.nPars = tab.curScope.nVars();
+        currMeth.nPars = tab.curScope.nVars();
         check(rpar);
 
         // Error Case for main
-        if ("main".equals(methodName) && meth.name != null) {
-            if(meth.nPars != 0){
+        if ("main".equals(methodName) && currMeth.name != null) {
+            if(currMeth.nPars != 0){
                 error(MAIN_WITH_PARAMS);
             }
-            if(meth.type != Tab.noType){
+            if(currMeth.type != Tab.noType){
                 error(MAIN_NOT_VOID);
             }
             code.mainpc = code.pc;
@@ -211,18 +212,18 @@ public final class ParserImpl extends Parser {
             error(Errors.Message.TOO_MANY_LOCALS);
         }
 
-        if (meth.kind == Obj.Kind.Meth) {
-            meth.adr = code.pc;
+        if (currMeth.kind == Obj.Kind.Meth) {
+            currMeth.adr = code.pc;
             code.put(OpCode.enter);
-            code.put(meth.nPars);
+            code.put(currMeth.nPars);
             code.put(tab.curScope.nVars());
         }
 
         Block();
 
-        meth.locals = tab.curScope.locals();
+        currMeth.locals = tab.curScope.locals();
 
-        if (meth.type != Tab.noType) {
+        if (currMeth.type != Tab.noType) {
             code.put(OpCode.trap);
             code.put(1);
         } else {
@@ -258,9 +259,7 @@ public final class ParserImpl extends Parser {
         check(ident);
         Obj o = tab.find(t.str);
 
-        if (o.kind == null){        // TODo right place for error handling? --> find()
-            error(NOT_FOUND, t.str);
-        } else if (o.kind != Obj.Kind.Type) {
+        if (o.kind != Obj.Kind.Type) {
             error(NO_TYPE);
         }
         StructImpl type = o.type;
@@ -390,13 +389,23 @@ public final class ParserImpl extends Parser {
                 check(semicolon);
                 break;
 
-            case return_:           // TODO implement return_
+            case return_:                       // TODO is return_ needed?
                 scan();
                 if(firstOfExpr.contains(sym)){
-                    Expr();
+                    if (currMeth.type == Tab.noType) {
+                        error(Errors.Message.RETURN_VOID);
+                    }
+                    Operand returnValue = Expr();
+                    if (!returnValue.type.assignableTo(currMeth.type)) {
+                        error(Errors.Message.RETURN_NO_VAL);
+                    }
+                    code.load(returnValue);
                 }
+                code.put(OpCode.exit);
+                code.put(OpCode.return_);
                 check(semicolon);
                 break;
+
 
             case read:
                 scan();
