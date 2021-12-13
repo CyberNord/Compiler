@@ -588,6 +588,7 @@ public final class ParserImpl extends Parser {
                 OpCode addOp = Addop();
                 code.load(opA);
                 Operand opB = Term();
+//                if (opA.type != Tab.intType || opB.type != Tab.intType) error(NO_INT_OP);
                 if(opB.type.kind != Struct.Kind.Int){error(NO_INT_OP); }
                 code.load(opB);
                 code.put(addOp);
@@ -628,22 +629,23 @@ public final class ParserImpl extends Parser {
                 case ident:
                     opA = Designator();
                     if(sym == lpar){
+                        if (opA.obj.type == Tab.noType){error(INVALID_CALL);}
+                        ActPars();
                         opA.type = opA.obj.type;
                         opA.kind = Operand.Kind.Stack;
-                        ActPars();
                     }
                     break;
                 case number:
                     scan();
                     opA = new Operand(t.val);
                     opA.type = Tab.intType;
-                    code.load(opA);
+//                    code.load(opA);
                     break;
                 case charConst:
                     scan();
                     opA = new Operand(t.val);
                     opA.type = Tab.charType;
-                    code.load(opA);
+//                    code.load(opA);
                     break;
                 case new_:
                     scan();
@@ -651,10 +653,12 @@ public final class ParserImpl extends Parser {
                     Obj obj = tab.find(t.str);
                     StructImpl objType = obj.type;
                     if(objType.kind == Struct.Kind.None){ error(NO_TYPE); }
+//                    if (obj.kind != Obj.Kind.Type){ error(NO_TYPE); }
                     if(sym == lbrack){
                         scan();
                         Operand opB = Expr();
-                        if (opB.type.kind != Struct.Kind.Int){error(NO_INT_OP); }
+//                        if (opB.type != Tab.intType){error(ARRAY_SIZE);}
+                        if (opB.type.kind != Struct.Kind.Int){error(ARRAY_SIZE); }
                         code.load(opB);
                         code.put(OpCode.newarray);
                         if(objType == Tab.charType){
@@ -666,7 +670,7 @@ public final class ParserImpl extends Parser {
                         opA.val = opB.val;
                         check(rbrack);
                     }else {
-                        if(obj.kind != Obj.Kind.Type || objType.kind != Struct.Kind.Class){
+                        if(obj.kind != Obj.Kind.Type ||  objType.kind != Struct.Kind.Class){
                             error(Errors.Message.NO_CLASS_TYPE);
                         }else{
                             code.put(OpCode.new_);
@@ -682,7 +686,7 @@ public final class ParserImpl extends Parser {
                     break;
                 default:
                     error(INVALID_FACT);
-                    opA = new Operand(0);
+                    opA = new Operand(Tab.noType);
             }
             return opA; 
     }
@@ -690,32 +694,35 @@ public final class ParserImpl extends Parser {
     // Designator = ident { "." ident | "[" Expr "]" }.
     private Operand Designator() {
         check(ident);
-        Operand x = new Operand(tab.find(t.str), this);
+        Operand opA = new Operand(tab.find(t.str), this);
         for(;;){
             if(sym == period){
-                if(x.type.kind != Struct.Kind.Class){ error(NO_CLASS_TYPE); }
+                if(opA.type.kind != Struct.Kind.Class){ error(NO_CLASS); }
                 scan();
-                code.load(x);
+                code.load(opA);
                 check(ident);
-                Obj obj = tab.findField(t.str, x.type);
-                x.kind = Operand.Kind.Fld; x.type = obj.type;
-                x.adr = obj.adr;
+                Obj obj = tab.findField(t.str, opA.type);
+                opA.kind = Operand.Kind.Fld;
+                opA.type = obj.type;
+                opA.adr = obj.adr;
             }else if(sym == lbrack){
-                if(x.type.kind != Struct.Kind.Arr){ error(NO_ARRAY);}
+                code.load(opA);
                 scan();
-                code.load(x);
                 Operand y = Expr();
-                if(y.type != Tab.intType){error(NO_INT_OP); }
-                code.load(y);
-                x.kind = Operand.Kind.Elem;
-                x.type = x.type.elemType;
+                if (opA.obj != null || y.type != Tab.intType) error(ARRAY_INDEX);
+                if(opA.type.kind == Struct.Kind.Arr) {
+                    code.load(y);
+                    opA.kind = Operand.Kind.Elem;
+                    opA.type = opA.type.elemType;
+                }else {
+                    error(NO_ARRAY);
+                }
                 check(rbrack);
             }else{
                 break;
             }
-
         }
-        return x;
+        return opA;
     }
 
     // Addop = "+" | "–".
