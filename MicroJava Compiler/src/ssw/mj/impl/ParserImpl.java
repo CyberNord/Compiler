@@ -568,7 +568,7 @@ public final class ParserImpl extends Parser {
 
     // Expr = [ "–" ] Term { Addop Term }.
     private Operand Expr(){
-        final Operand opA;
+        Operand opA;
         if(sym == minus){
             scan();
             opA = Term();
@@ -583,12 +583,12 @@ public final class ParserImpl extends Parser {
             opA = Term();
         }
         for(;;){
-            if(firstOfAddop.contains(sym)){
-                OpCode addOp = Addop();
+            if(firstOfAddop.contains(sym)){     // (plus, minus)
                 code.load(opA);
+                OpCode addOp = Addop();
+                if(opA.type.kind != Struct.Kind.Int){error(NO_INT_OP);}
                 Operand opB = Term();
-//                if (opA.type != Tab.intType || opB.type != Tab.intType) error(NO_INT_OP);
-                if(opB.type.kind != Struct.Kind.Int){error(NO_INT_OP); }
+                if(opB.type.kind != Struct.Kind.Int){error(NO_INT_OP);}
                 code.load(opB);
                 code.put(addOp);
             }else{
@@ -624,7 +624,9 @@ public final class ParserImpl extends Parser {
     //| "(" Expr ")".
     private Operand Factor(){
         Operand opA;
+
             switch (sym){
+
                 case ident:
                     opA = Designator();
                     if(sym == lpar){
@@ -634,18 +636,21 @@ public final class ParserImpl extends Parser {
                         opA.kind = Operand.Kind.Stack;
                     }
                     break;
+
                 case number:
                     scan();
                     opA = new Operand(t.val);
                     opA.type = Tab.intType;
 //                    code.load(opA);
                     break;
+
                 case charConst:
                     scan();
                     opA = new Operand(t.val);
                     opA.type = Tab.charType;
 //                    code.load(opA);
                     break;
+
                 case new_:
                     scan();
                     check(ident);
@@ -678,11 +683,13 @@ public final class ParserImpl extends Parser {
                         opA = new Operand(objType);
                     }
                     break;
+
                 case lpar:
                     scan();
                     opA = Expr();
                     check(rpar);
                     break;
+
                 default:
                     error(INVALID_FACT);
                     opA = new Operand(Tab.noType);
@@ -707,16 +714,16 @@ public final class ParserImpl extends Parser {
             }else if(sym == lbrack){
                 code.load(opA);
                 scan();
-                Operand y = Expr();
-                if (opA.obj != null || y.type != Tab.intType) error(ARRAY_INDEX);
+                Operand opB = Expr();
+                if (opA.obj != null || opB.type != Tab.intType) error(ARRAY_INDEX);
                 if(opA.type.kind == Struct.Kind.Arr) {
-                    code.load(y);
+                    code.load(opB);
                     opA.kind = Operand.Kind.Elem;
                     opA.type = opA.type.elemType;
+                    check(rbrack);
                 }else {
                     error(NO_ARRAY);
                 }
-                check(rbrack);
             }else{
                 break;
             }
@@ -727,10 +734,11 @@ public final class ParserImpl extends Parser {
     // Addop = "+" | "–".
     private OpCode Addop() {
         if(firstOfAddop.contains(sym)){     // (plus,minus)
-            scan();
             if(sym == plus){
+                scan();
                 return OpCode.add;
             }else{
+                scan();
                 return OpCode.sub;
             }
         }else{
