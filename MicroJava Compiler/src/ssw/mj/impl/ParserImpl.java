@@ -36,9 +36,6 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> recoverDecl = EnumSet.of(final_, class_, lbrace, /* rbrace, */ eof, ident);
     private final EnumSet<Kind> recoverMeth = EnumSet.of(void_, rbrace, eof);
 
-    // Todo delete if not needed
-//    private static final EnumSet<Operand.Kind> assignableKinds = EnumSet.of(Operand.Kind.Elem, Operand.Kind.Local, Operand.Kind.Static, Operand.Kind.Fld);
-
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
     private static final int RESET_VAL = 0;
@@ -258,7 +255,6 @@ public final class ParserImpl extends Parser {
     private StructImpl Type(){
         check(ident);
         Obj o = tab.find(t.str);
-
         if (o.kind != Obj.Kind.Type) {
             error(NO_TYPE);
         }
@@ -336,10 +332,9 @@ public final class ParserImpl extends Parser {
 
                     // ActPars
                 }else if(sym == lpar){
-                    // TODO do I need that? ActPars
+                    // TODO check if ActPars is needed, else delete comments
 //                    if (opA.kind != Operand.Kind.Meth) error(NO_METH);
                     ActPars();
-//                    code.call(opA);
 //                    if (opA.type != Tab.noType) code.put(OpCode.pop);
 
                     // "++" | "--"
@@ -379,9 +374,7 @@ public final class ParserImpl extends Parser {
                 check(lpar);
                 Condition();
                 check(rpar);
-//                tab.openScope();
                 Statement();
-//                tab.closeScope();
                 break;
 
             case break_:
@@ -389,23 +382,18 @@ public final class ParserImpl extends Parser {
                 check(semicolon);
                 break;
 
-            case return_:                       // TODO is return_ needed?
+            case return_:
                 scan();
                 if(firstOfExpr.contains(sym)){
-                    if (currMeth.type == Tab.noType) {
-                        error(Errors.Message.RETURN_VOID);
-                    }
+                    if (currMeth.type == Tab.noType) {error(RETURN_VOID);}
                     Operand returnValue = Expr();
-                    if (!returnValue.type.assignableTo(currMeth.type)) {
-                        error(Errors.Message.RETURN_NO_VAL);
-                    }
+                    if (!returnValue.type.assignableTo(currMeth.type)) {error(RETURN_NO_VAL);}
                     code.load(returnValue);
                 }
                 code.put(OpCode.exit);
                 code.put(OpCode.return_);
                 check(semicolon);
                 break;
-
 
             case read:
                 scan();

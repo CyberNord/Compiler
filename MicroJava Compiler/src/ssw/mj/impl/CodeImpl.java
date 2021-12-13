@@ -160,7 +160,7 @@ public final class CodeImpl extends Code {
             }
             loadOp(operand);
             loadOp(new Operand(value));
-            put(inc);
+            put(add);
             store(operand);
         }
     }
@@ -173,20 +173,4 @@ public final class CodeImpl extends Code {
             put(OpCode.dup2);
         }
     }
-
-    // TODO delete call if not needed
-    public void call(Operand method) {
-        if (method.obj == parser.tab.lenObj) {
-            put(OpCode.arraylength);
-        } else if (method.obj == parser.tab.chrObj) {
-            // nothing to put
-        } else if (method.obj == parser.tab.ordObj) {
-            // nothing to put
-        } else {
-            put(OpCode.call);
-            put2(method.adr - (pc - 1));
-        }
-        method.kind = Operand.Kind.Stack;
-    }
-
 }
