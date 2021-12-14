@@ -39,7 +39,6 @@ public final class ParserImpl extends Parser {
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
     private static final int RESET_VAL = 0;
-    private Obj currMeth;
 
     /**
      * Starts the analysis.
@@ -178,7 +177,7 @@ public final class ParserImpl extends Parser {
 
         check(ident);
         String methodName = t.str;
-        currMeth = tab.insert(Obj.Kind.Meth, methodName, type);
+        Obj currMeth = tab.insert(Obj.Kind.Meth, methodName, type);
         currMeth.adr = code.pc;
         check(lpar);
         tab.openScope();
