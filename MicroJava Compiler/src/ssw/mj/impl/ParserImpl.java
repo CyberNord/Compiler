@@ -132,15 +132,11 @@ public final class ParserImpl extends Parser {
     private void VarDecl(){
         StructImpl type = Type();
         check(ident);
-        if(type != Tab.noType) {
-            tab.insert(Obj.Kind.Var, t.str, type);
-        }
+        if(type != Tab.noType) {tab.insert(Obj.Kind.Var, t.str, type);}     // only insert if type is valid
         while (sym == comma){
             scan();
             check(ident);
-            if(type != Tab.noType) {
-                tab.insert(Obj.Kind.Var, t.str, type);
-            }
+            if(type != Tab.noType) {tab.insert(Obj.Kind.Var, t.str, type);}
         }
         check(semicolon);
     }
@@ -157,9 +153,11 @@ public final class ParserImpl extends Parser {
         while (sym == ident){
             VarDecl();
         }
+
         if (tab.curScope.nVars() > MAX_FIELDS) {
             error(TOO_MANY_FIELDS);
         }
+
         clazz.type.fields = tab.curScope.locals();
         tab.closeScope();
         check(rbrace);
@@ -188,6 +186,7 @@ public final class ParserImpl extends Parser {
         if(sym == ident) {
             FormPars(currMeth);
         }
+
         currMeth.nPars = tab.curScope.nVars();
         check(rpar);
 
@@ -307,6 +306,7 @@ public final class ParserImpl extends Parser {
                         error(NO_VAR);
                     }
 
+                    // contains check if duplication is even needed
                     if(opCodeAss != OpCode.store && (opA.kind == Operand.Kind.Fld ||opA.kind == Operand.Kind.Elem)) {
                         code.duplicate(opA);
                         code.loadOp(opA);
@@ -323,20 +323,12 @@ public final class ParserImpl extends Parser {
                             error(INCOMP_TYPES);
                         }
                     }else{
-                        if (opA.type != Tab.intType || opB.type != Tab.intType){
-                            error(Errors.Message.NO_INT_OP);
-                        }
-                        code.load(opB);
-                        code.put(opCodeAss);        // (add, sub, mul, div, rem)
-                        code.store(opA);
+                        code.doBasicArithmetic(opA, opCodeAss, opB);    // (add, sub, mul, div, rem)
                     }
 
                     // ActPars
                 }else if(sym == lpar){
-                    // TODO check if ActPars is needed, else delete comments
-//                    if (opA.kind != Operand.Kind.Meth) error(NO_METH);
                     ActPars();
-//                    if (opA.type != Tab.noType) code.put(OpCode.pop);
 
                     // "++" | "--"
                 }else if(firstOfQuickop.contains(sym)){   // (mminus,pplus)
@@ -386,30 +378,15 @@ public final class ParserImpl extends Parser {
             case return_:
                 scan();
                 if(firstOfExpr.contains(sym)){
-                    if (currMeth.type == Tab.noType) {error(RETURN_VOID);}
-                    Operand returnValue = Expr();
-                    if (!returnValue.type.assignableTo(currMeth.type)) {error(RETURN_NO_VAL);}
-                    code.load(returnValue);
+                    Expr();
                 }
-                code.put(OpCode.exit);
-                code.put(OpCode.return_);
                 check(semicolon);
                 break;
 
             case read:
                 scan();
                 check(lpar);
-                Operand readOp = Designator();
-                if(readOp.type.kind == Struct.Kind.Int){
-                    code.put(OpCode.read);
-                    code.assign(readOp,new Operand(Tab.intType));
-                }else if(readOp.type.kind == Struct.Kind.Char){
-                    code.put(OpCode.bread);
-                    code.assign(readOp,new Operand(Tab.charType));
-                }
-                if(readOp.type.kind != Struct.Kind.Char && readOp.type.kind != Struct.Kind.Int){
-                    error(READ_VALUE);
-                }
+                code.doReadOp(Designator());
                 check(rpar);
                 check(semicolon);
                 break;
@@ -422,21 +399,12 @@ public final class ParserImpl extends Parser {
                     error(Errors.Message.PRINT_VALUE);
                 }
                 int width = 0;
-
                 if(sym == comma){
                     scan();
                     check(number);
                     width = t.val;
                 }
-
-                code.load(printOp);
-                code.loadConst(width);
-                if(printOp.type.kind == Struct.Kind.Int){
-                    code.put(OpCode.print);
-                }else if(printOp.type.kind == Struct.Kind.Char){
-                    code.put(OpCode.bprint);
-                }
-
+                code.doPrintOp(printOp, width);
                 check(rpar);
                 check(semicolon);
                 break;
@@ -630,14 +598,12 @@ public final class ParserImpl extends Parser {
                     scan();
                     opA = new Operand(t.val);
                     opA.type = Tab.intType;
-//                    code.load(opA);
                     break;
 
                 case charConst:
                     scan();
                     opA = new Operand(t.val);
                     opA.type = Tab.charType;
-//                    code.load(opA);
                     break;
 
                 case new_:
@@ -646,21 +612,10 @@ public final class ParserImpl extends Parser {
                     Obj obj = tab.find(t.str);
                     StructImpl objType = obj.type;
                     if(objType.kind == Struct.Kind.None){ error(NO_TYPE); }
-//                    if (obj.kind != Obj.Kind.Type){ error(NO_TYPE); }
                     if(sym == lbrack){
                         scan();
                         Operand opB = Expr();
-//                        if (opB.type != Tab.intType){error(ARRAY_SIZE);}
-                        if (opB.type.kind != Struct.Kind.Int){error(ARRAY_SIZE); }
-                        code.load(opB);
-                        code.put(OpCode.newarray);
-                        if(objType == Tab.charType){
-                            code.put(0);
-                        }else{
-                            code.put(1);
-                        }
-                        opA = new Operand(new StructImpl(objType));
-                        opA.val = opB.val;
+                        opA = code.getArray(opB, objType );
                         check(rbrack);
                     }else {
                         if(obj.kind != Obj.Kind.Type ||  objType.kind != Struct.Kind.Class){
@@ -782,5 +737,4 @@ public final class ParserImpl extends Parser {
         }
         successfulScans = RESET_VAL;
     }
-
 }

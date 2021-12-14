@@ -1,12 +1,13 @@
 package ssw.mj.impl;
 
+import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Operand;
+import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
-import static ssw.mj.Errors.Message.NO_VAL;
-import static ssw.mj.Errors.Message.NO_VAR;
+import static ssw.mj.Errors.Message.*;
 import static ssw.mj.codegen.Code.OpCode.*;
 
 
@@ -19,19 +20,19 @@ public final class CodeImpl extends Code {
     // TODO Exercise 5 - 6: implementation of code generation
 
     // source: exercise slides
-    void load(Operand operand) {
-        loadOp(operand);
-        operand.kind = Operand.Kind.Stack; // remember that value is now loaded
+    public void load(Operand opA) {
+        loadOp(opA);
+        opA.kind = Operand.Kind.Stack; // remember that value is now loaded
     }
 
-    void loadOp(Operand operand) {
-        if (operand == null) return;
-        switch (operand.kind) {
+    public void loadOp(Operand opA) {
+        if (opA == null) return;
+        switch (opA.kind) {
             case Con:
-                loadConst(operand.val);
+                loadConst(opA.val);
                 break;
             case Local:
-                switch (operand.adr) {
+                switch (opA.adr) {
                     case 0:
                         put(OpCode.load_0);
                         break;
@@ -46,22 +47,22 @@ public final class CodeImpl extends Code {
                         break;
                     default:
                         put(OpCode.load);
-                        put(operand.adr);
+                        put(opA.adr);
                         break;
                 }
                 break;
             case Static:
                 put(OpCode.getstatic);
-                put2(operand.adr);
+                put2(opA.adr);
                 break;
             case Stack:
                 break; // nothing to do (already loaded)
             case Fld:
                 put(OpCode.getfield);
-                put2(operand.adr);
+                put2(opA.adr);
                 break;
             case Elem:
-                if (operand.type == Tab.charType) {
+                if (opA.type == Tab.charType) {
                     put(OpCode.baload);
                 } else {
                     put(OpCode.aload);
@@ -72,7 +73,7 @@ public final class CodeImpl extends Code {
         }
     }
 
-    void loadConst(int val) {
+    public void loadConst(int val) {
         switch (val) {
             case -1:
                 put(const_m1);
@@ -101,12 +102,12 @@ public final class CodeImpl extends Code {
         }
     }
 
-    void assign(Operand target, Operand source) {
+    public void assign(Operand target, Operand source) {
         loadOp(source);
         store(target);
     }
 
-    void store(Operand operand) {
+    public void store(Operand operand) {
         switch (operand.kind) {
             case Local:
                 switch (operand.adr) {
@@ -166,11 +167,61 @@ public final class CodeImpl extends Code {
     }
 
     // creates a duplicate
-    void duplicate(Operand operand) {
+    public void duplicate(Operand operand) {
         if (operand.kind == Operand.Kind.Fld) {
             put(OpCode.dup);
         } else {
             put(OpCode.dup2);
         }
+    }
+
+    // (add, sub, mul, div, rem)
+    public void doBasicArithmetic(Operand opA, OpCode opCodeAss, Operand opB) {
+        if (opA.type != Tab.intType || opB.type != Tab.intType){
+            parser.error(Errors.Message.NO_INT_OP);
+        }
+        load(opB);
+        put(opCodeAss);
+        store(opA);
+    }
+
+    // read
+    public void doReadOp(Operand readOp){
+        if(readOp.type.kind == Struct.Kind.Int){
+            put(OpCode.read);
+            assign(readOp,new Operand(Tab.intType));
+        }else if(readOp.type.kind == Struct.Kind.Char){
+            put(OpCode.bread);
+            assign(readOp,new Operand(Tab.charType));
+        }
+        if(readOp.type.kind != Struct.Kind.Char && readOp.type.kind != Struct.Kind.Int){
+            parser.error(READ_VALUE);
+        }
+    }
+
+    //print
+    public void doPrintOp(Operand printOp, int width) {
+        load(printOp);
+        loadConst(width);
+        if(printOp.type.kind == Struct.Kind.Int){
+            put(OpCode.print);
+        }else if(printOp.type.kind == Struct.Kind.Char){
+            put(OpCode.bprint);
+        }
+    }
+
+    // array
+    public Operand getArray(Operand opB, StructImpl objType) {
+        if (opB.type.kind != Struct.Kind.Int){parser.error(ARRAY_SIZE); }
+        load(opB);
+        put(OpCode.newarray);
+        if(objType == Tab.charType){
+            put(0);
+        }else{
+            put(1);
+        }
+        Operand opA = new Operand(new StructImpl(objType));
+        opA.val = opB.val;
+        return opA;
     }
 }
