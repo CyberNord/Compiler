@@ -385,7 +385,7 @@ public final class ParserImpl extends Parser {
             case read:
                 scan();
                 check(lpar);
-                code.doReadOp(Designator());
+                code.doReadOp(Designator());            // read Operation in CodeImpl
                 check(rpar);
                 check(semicolon);
                 break;
@@ -403,7 +403,7 @@ public final class ParserImpl extends Parser {
                     check(number);
                     width = t.val;
                 }
-                code.doPrintOp(printOp, width);
+                code.doPrintOp(printOp, width);         // print Operation in CodeImpl
                 check(rpar);
                 check(semicolon);
                 break;
@@ -614,7 +614,7 @@ public final class ParserImpl extends Parser {
                     if(sym == lbrack){
                         scan();
                         Operand opB = Expr();
-                        opA = code.getArray(opB, objType );
+                        opA = code.getArray(opB, objType );      // current is identified as Array
                         check(rbrack);
                     }else {
                         if(obj.kind != Obj.Kind.Type ||  objType.kind != Struct.Kind.Class){
