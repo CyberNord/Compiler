@@ -394,8 +394,8 @@ public final class ParserImpl extends Parser {
                 scan();
                 check(lpar);
                 Operand printOp = Expr();
-                if(printOp.type.kind != Struct.Kind.Int && printOp.type.kind != Struct.Kind.Char){
-                    error(Errors.Message.PRINT_VALUE);
+                if(printOp.type.kind != Struct.Kind.Char && printOp.type.kind != Struct.Kind.Int ){
+                    error(PRINT_VALUE);
                 }
                 int width = 0;
                 if(sym == comma){
