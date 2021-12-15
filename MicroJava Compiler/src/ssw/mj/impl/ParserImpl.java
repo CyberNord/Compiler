@@ -219,13 +219,8 @@ public final class ParserImpl extends Parser {
 
         currMeth.locals = tab.curScope.locals();
 
-        if (currMeth.type != Tab.noType) {
-            code.put(OpCode.trap);
-            code.put(1);
-        } else {
-            code.put(OpCode.exit);
-            code.put(OpCode.return_);
-        }
+        code.put(OpCode.exit);
+        code.put(OpCode.return_);
 
         tab.closeScope();
     }
