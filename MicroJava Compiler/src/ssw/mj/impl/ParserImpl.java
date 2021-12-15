@@ -203,10 +203,10 @@ public final class ParserImpl extends Parser {
         while (sym == ident){
             VarDecl();
         }
-        code.dataSize = tab.curScope.nVars();
         if(tab.curScope.nVars() > MAX_LOCALS) {
             error(Errors.Message.TOO_MANY_LOCALS);
         }
+        code.dataSize = tab.curScope.nVars();
 
         if (currMeth.kind == Obj.Kind.Meth) {
             currMeth.adr = code.pc;
