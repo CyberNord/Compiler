@@ -75,30 +75,14 @@ public final class CodeImpl extends Code {
 
     public void loadConst(int val) {
         switch (val) {
-            case -1:
-                put(const_m1);
-                break;
-            case 0:
-                put(const_0);
-                break;
-            case 1:
-                put(const_1);
-                break;
-            case 2:
-                put(const_2);
-                break;
-            case 3:
-                put(const_3);
-                break;
-            case 4:
-                put(const_4);
-                break;
-            case 5:
-                put(const_5);
-                break;
-            default:
-                put(const_);
-                put4(val);
+            case -1:    put(const_m1);  break;
+            case 0:     put(const_0);   break;
+            case 1:     put(const_1);   break;
+            case 2:     put(const_2);   break;
+            case 3:     put(const_3);   break;
+            case 4:     put(const_4);   break;
+            case 5:     put(const_5);   break;
+            default:    put(const_);    put4(val);
         }
     }
 
