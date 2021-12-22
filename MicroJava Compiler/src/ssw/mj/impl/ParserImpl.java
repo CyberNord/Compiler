@@ -41,6 +41,8 @@ public final class ParserImpl extends Parser {
     private static final int MIN_ERR_DIST = 3;
     private static final int RESET_VAL = 0;
 
+    private  Obj currMeth;
+
     /**
      * Starts the analysis.
      */
@@ -178,7 +180,7 @@ public final class ParserImpl extends Parser {
 
         check(ident);
         String methodName = t.str;
-        Obj currMeth = tab.insert(Obj.Kind.Meth, methodName, type);
+        currMeth = tab.insert(Obj.Kind.Meth, methodName, type);
         currMeth.adr = code.pc;
         check(lpar);
         tab.openScope();
@@ -351,12 +353,18 @@ public final class ParserImpl extends Parser {
             case if_:
                 scan();
                 check(lpar);
-                Condition();
+                opA = Condition();
+                code.fJump(opA);
+                opA.tLabel.here();
                 check(rpar);
                 Statement();
                 if(sym == else_){
                     scan();
+                    LabelImpl endIf = new LabelImpl(code);
+                    code.jump(endIf);
+                    opA.fLabel.here();
                     Statement();
+                    endIf.here();
                 }
                 break;
 
