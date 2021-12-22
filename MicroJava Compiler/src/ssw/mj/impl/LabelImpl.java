@@ -8,7 +8,7 @@ import java.util.List;
 public final class LabelImpl extends Label {
 
     // DONE Exercise 6: Implementation of Labels for management of jump targets
-    // basically every code is taken from the exercise slides.
+    // Note: basically every code is taken from the exercise slides.
 
 	public LabelImpl(Code code) {
         super(code);
