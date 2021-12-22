@@ -492,16 +492,19 @@ public final class ParserImpl extends Parser {
     }
 
     // CondTerm = CondFact { "&&" CondFact }.
-    private void CondTerm(){
-        CondFact();
+    private Operand CondTerm(){
+        Operand opA = CondFact();
         for (;;) {
             if (sym == and) {
+                code.fJump(opA);
                 scan();
-                CondFact();
+                Operand opB = CondFact();
+                opA.op = opB.op;
             } else {
                 break;
             }
         }
+        return opA;
     }
 
     // CondFact = Expr Relop Expr.
