@@ -523,12 +523,21 @@ public final class ParserImpl extends Parser {
     }
 
     // Relop = "==" | "!=" | ">" | ">=" | "<" | "<=".
-    private void Relop(){
+    private Code.CompOp Relop(){
         if(firstOfRelop.contains(sym)){
-            scan();
+            switch (sym){
+                case eql: scan(); return Code.CompOp.eq;
+                case neq: scan(); return Code.CompOp.ne;
+                case gtr: scan(); return Code.CompOp.gt;
+                case geq: scan(); return Code.CompOp.ge;
+                case lss: scan(); return Code.CompOp.lt;
+                case leq: scan(); return Code.CompOp.le;
+            }
         }else{
             error(REL_OP);
         }
+        // TODO Relop() null as Error return value correct?
+        return null;
     }
 
     // Expr = [ "–" ] Term { Addop Term }.
