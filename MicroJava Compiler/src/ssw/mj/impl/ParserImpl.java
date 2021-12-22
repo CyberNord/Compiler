@@ -480,16 +480,21 @@ public final class ParserImpl extends Parser {
     }
 
     // Condition = CondTerm { "||" CondTerm }.
-    private void Condition() {
-        CondTerm();
+    private Operand Condition() {
+        Operand opA = CondTerm();
         for (;;) {
             if (sym == or) {
+                code.tJump(opA);
                 scan();
-                CondTerm();
+                opA.fLabel.here();
+                Operand opB = CondTerm();
+                opA.fLabel = opB.fLabel;
+                opA.op = opB.op;
             } else {
                 break;
             }
         }
+        return opA;
     }
 
     // CondTerm = CondFact { "&&" CondFact }.
