@@ -219,7 +219,7 @@ public final class ParserImpl extends Parser {
             code.put(tab.curScope.nVars());
         }
 
-        Block();
+        Block(null);
 
         currMeth.locals = tab.curScope.locals();
 
@@ -270,12 +270,12 @@ public final class ParserImpl extends Parser {
     }
 
     // Block = "{" { Statement } "}".
-    private void Block(){
+    private void Block(Label breakLabel){
         check(lbrace);
         // only Enter if there is no current error case active
         if(successfulScans > RESET_VAL) {
             while (sym != eof && sym != rbrace) {
-                Statement();
+                Statement(breakLabel);
                 // moved recover inside due advice of tutor
             }
         }
@@ -425,7 +425,7 @@ public final class ParserImpl extends Parser {
                 break;
 
             case lbrace:
-                Block();
+                Block(breakLabel);
                 break;
 
             case semicolon:
