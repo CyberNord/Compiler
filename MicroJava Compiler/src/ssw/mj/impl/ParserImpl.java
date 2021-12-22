@@ -4,6 +4,7 @@ import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
+import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Code.OpCode;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
@@ -508,10 +509,17 @@ public final class ParserImpl extends Parser {
     }
 
     // CondFact = Expr Relop Expr.
-    private void CondFact(){
-        Expr();
-        Relop();
-        Expr();
+    private Operand CondFact(){
+        Operand opA = Expr();
+        code.load(opA);
+        Code.CompOp compOp = Relop();   // eq, ne, lt, le, gt, ge
+        Operand opB =Expr();
+        code.load(opB);
+        // TODO CondFact Error handling
+        if (!opA.type.compatibleWith(opB.type)) {
+            error(INCOMP_TYPES);
+        }
+        return new Operand(compOp, code);
     }
 
     // Relop = "==" | "!=" | ">" | ">=" | "<" | "<=".
