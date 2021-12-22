@@ -292,39 +292,39 @@ public final class ParserImpl extends Parser {
     //           | Block
     //           | ";".
     private void Statement(Label breakLabel){
-        Operand opA;
+        Operand returnValue;
         switch(sym){
 
             // Designator ( Assignop Expr | ActPars | "++" | "--" ) ";"
             case ident:
-                opA = Designator();
+                returnValue = Designator();
 
                 // Assignop Expr
                 if(firstOfAssignop.contains(sym)){     // (assign, plusas, minusas, timesas, slashas, remas)
                     OpCode opCodeAss = Assignop();
 
-                    if (opCodeAss != OpCode.store && (opA.kind == Operand.Kind.Meth || opA.kind == Operand.Kind.Cond)) {
+                    if (opCodeAss != OpCode.store && (returnValue.kind == Operand.Kind.Meth || returnValue.kind == Operand.Kind.Cond)) {
                         error(NO_VAR);
                     }
 
                     // contains check if duplication is even needed
-                    if(opCodeAss != OpCode.store && (opA.kind == Operand.Kind.Fld ||opA.kind == Operand.Kind.Elem)) {
-                        code.duplicate(opA);
-                        code.loadOp(opA);
+                    if(opCodeAss != OpCode.store && (returnValue.kind == Operand.Kind.Fld ||returnValue.kind == Operand.Kind.Elem)) {
+                        code.duplicate(returnValue);
+                        code.loadOp(returnValue);
                     }
 
                     Operand opB = Expr();
 
-                    if(opA.obj != null && opA.obj.kind != Obj.Kind.Var) {error(NO_VAR);}
+                    if(returnValue.obj != null && returnValue.obj.kind != Obj.Kind.Var) {error(NO_VAR);}
 
                     if(opCodeAss == OpCode.store) {
-                        if (opB.type.assignableTo(opA.type)) {
-                            code.assign(opA, opB);
+                        if (opB.type.assignableTo(returnValue.type)) {
+                            code.assign(returnValue, opB);
                         } else {
                             error(INCOMP_TYPES);
                         }
                     }else{
-                        code.doBasicArithmetic(opA, opCodeAss, opB);    // (add, sub, mul, div, rem)
+                        code.doBasicArithmetic(returnValue, opCodeAss, opB);    // (add, sub, mul, div, rem)
                     }
 
                     // ActPars
@@ -333,14 +333,14 @@ public final class ParserImpl extends Parser {
 
                     // "++" | "--"
                 }else if(firstOfQuickop.contains(sym)){   // (mminus,pplus)
-                    if(opA.type != Tab.intType){error(NO_INT);}
-                    if(opA.obj != null && opA.obj.kind != Obj.Kind.Var){error(NO_VAR);}
+                    if(returnValue.type != Tab.intType){error(NO_INT);}
+                    if(returnValue.obj != null && returnValue.obj.kind != Obj.Kind.Var){error(NO_VAR);}
                     if(sym == mminus){
                         scan();
-                        code.increment(opA, -1);
+                        code.increment(returnValue, -1);
                     }else{
                         scan();
-                        code.increment(opA, 1);
+                        code.increment(returnValue, 1);
                     }
 
                     // Error in -> Designator ( Assignop Expr | ActPars | "++" | "--" )"
@@ -354,20 +354,20 @@ public final class ParserImpl extends Parser {
             case if_:
                 scan();
                 check(lpar);
-                opA = Condition();
-                code.fJump(opA);
-                opA.tLabel.here();
+                returnValue = Condition();
+                code.fJump(returnValue);
+                returnValue.tLabel.here();
                 check(rpar);
                 Statement(breakLabel);
                 if(sym == else_){
                     scan();
                     LabelImpl endIf = new LabelImpl(code);
                     code.jump(endIf);
-                    opA.fLabel.here();
+                    returnValue.fLabel.here();
                     Statement(breakLabel);
                     endIf.here();
                 }else{
-                    opA.fLabel.here();
+                    returnValue.fLabel.here();
                 }
                 break;
 
@@ -376,13 +376,13 @@ public final class ParserImpl extends Parser {
                 check(lpar);
                 LabelImpl top = new LabelImpl(code);
                 top.here();
-                opA = Condition();
-                code.fJump(opA);
-                opA.tLabel.here();
+                returnValue = Condition();
+                code.fJump(returnValue);
+                returnValue.tLabel.here();
                 check(rpar);
-                Statement(opA.fLabel);
+                Statement(returnValue.fLabel);
                 code.jump(top);
-                opA.fLabel.here();
+                returnValue.fLabel.here();
                 break;
 
             case break_:
@@ -398,8 +398,18 @@ public final class ParserImpl extends Parser {
             case return_:
                 scan();
                 if(firstOfExpr.contains(sym)){
-                    Expr();
+                    // void method must not return a value
+                    if(currMeth.type == Tab.noType)error(RETURN_VOID);
+                    returnValue = Expr();
+                    // check for correct return value
+                    if(currMeth.type.compatibleWith(returnValue.type)) {
+                        code.load(returnValue);
+                    }else{
+                        error(RETURN_TYPE);
+                    }
                 }
+                code.put(OpCode.exit);
+                code.put(OpCode.return_);
                 check(semicolon);
                 break;
 
