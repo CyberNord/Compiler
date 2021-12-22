@@ -6,6 +6,7 @@ import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
 import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Code.OpCode;
+import ssw.mj.codegen.Label;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Struct;
@@ -290,7 +291,7 @@ public final class ParserImpl extends Parser {
     //           | "print" "(" Expr [ "," number ] ")" ";"
     //           | Block
     //           | ";".
-    private void Statement(){
+    private void Statement(Label breakLabel){
         Operand opA;
         switch(sym){
 
@@ -357,23 +358,31 @@ public final class ParserImpl extends Parser {
                 code.fJump(opA);
                 opA.tLabel.here();
                 check(rpar);
-                Statement();
+                Statement(breakLabel);
                 if(sym == else_){
                     scan();
                     LabelImpl endIf = new LabelImpl(code);
                     code.jump(endIf);
                     opA.fLabel.here();
-                    Statement();
+                    Statement(breakLabel);
                     endIf.here();
+                }else{
+                    opA.fLabel.here();
                 }
                 break;
 
             case while_:
                 scan();
                 check(lpar);
-                Condition();
+                LabelImpl top = new LabelImpl(code);
+                top.here();
+                opA = Condition();
+                code.fJump(opA);
+                opA.tLabel.here();
                 check(rpar);
-                Statement();
+                Statement(opA.fLabel);
+                code.jump(top);
+                opA.fLabel.here();
                 break;
 
             case break_:
