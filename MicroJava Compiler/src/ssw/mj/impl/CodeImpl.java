@@ -3,6 +3,7 @@ package ssw.mj.impl;
 import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.codegen.Code;
+import ssw.mj.codegen.Label;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
@@ -159,6 +160,48 @@ public final class CodeImpl extends Code {
         }
     }
 
+    // call method
+    public void call(Operand operand){
+        // TODO change call()
+        if (operand.obj == parser.tab.lenObj) {
+            put(OpCode.arraylength);
+        } else if(operand.obj != parser.tab.chrObj && operand.obj != parser.tab.ordObj) {
+            put(OpCode.call);
+            put2(operand.adr - (pc - 1));
+        }
+    }
+
+    // normal Jump
+    public void jump(Label label){
+        put(jmp);
+        label.put();
+    }
+
+    // True Jump
+    public void tJump (Operand operand) {
+        condJump(operand.op);  // jeq, jne, jlt, jle, ...
+        operand.tLabel.put();
+    }
+
+    // False Jump
+    public void fJump (Operand operand) {
+        condJump(CompOp.invert(operand.op));  // jne, jeq, jge, jgt, ...
+        operand.fLabel.put();
+    }
+
+    // execute conditional jump operation
+    private void condJump(CompOp compOp){
+        switch (compOp) {
+            case eq: put(jeq); break;
+            case ne: put(jne); break;
+            case le: put(jle); break;
+            case lt: put(jlt); break;
+            case ge: put(jge); break;
+            case gt: put(jgt); break;
+        }
+    }
+
+    // TODO errors should be outside
     // (add, sub, mul, div, rem)
     public void doBasicArithmetic(Operand opA, OpCode opCodeAss, Operand opB) {
         if (opA.type != Tab.intType || opB.type != Tab.intType){
@@ -208,4 +251,5 @@ public final class CodeImpl extends Code {
         opA.val = opB.val;
         return opA;
     }
+
 }
