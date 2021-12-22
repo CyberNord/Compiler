@@ -387,6 +387,11 @@ public final class ParserImpl extends Parser {
 
             case break_:
                 scan();
+                if(breakLabel == null){
+                    error(NO_LOOP);
+                }else{
+                    code.jump(breakLabel);
+                }
                 check(semicolon);
                 break;
 
