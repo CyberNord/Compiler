@@ -219,8 +219,11 @@ public final class ParserImpl extends Parser {
 
         currMeth.locals = tab.curScope.locals();
 
-        code.put(OpCode.exit);
-        code.put(OpCode.return_);
+        if (currMeth.type == Tab.noType) {
+            code.put(OpCode.exit); code.put(OpCode.return_);
+        } else { // end of function reached without a return statement
+            code.put(OpCode.trap); code.put(1);
+        }
 
         tab.closeScope();
     }
