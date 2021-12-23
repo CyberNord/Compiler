@@ -3,6 +3,7 @@ package ssw.mj.impl;
 import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Label;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class LabelImpl extends Label {
@@ -12,7 +13,9 @@ public final class LabelImpl extends Label {
 
 	public LabelImpl(Code code) {
         super(code);
+        fixupList = new ArrayList<>();
     }
+
     List<Integer> fixupList;
 
     /**
@@ -47,8 +50,7 @@ public final class LabelImpl extends Label {
     }
 
     private boolean isDefined() {
-//        return this.adr >= 0;
-        return fixupList == null;   //TODO isDefined fix it somehow
+        return this.adr > 0;
     }
 
 }
