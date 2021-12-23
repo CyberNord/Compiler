@@ -47,7 +47,8 @@ public final class LabelImpl extends Label {
     }
 
     private boolean isDefined() {
-        return this.adr >= 0;
+//        return this.adr >= 0;
+        return fixupList == null;   //TODO isDefined fix it somehow
     }
 
 }
