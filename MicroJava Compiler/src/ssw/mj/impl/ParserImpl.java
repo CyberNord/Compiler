@@ -507,6 +507,7 @@ public final class ParserImpl extends Parser {
             }else{      // break out of the while
                 break;
             }
+
         }
 
         if(sym == hash){    // has Vararg ?
