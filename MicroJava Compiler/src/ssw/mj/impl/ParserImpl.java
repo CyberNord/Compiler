@@ -512,6 +512,7 @@ public final class ParserImpl extends Parser {
             error(Errors.Message.NO_METH);
             return;     // exit ActPars
         }
+        Obj objVar = null;
 
         int idx = 0;
         Iterator<Obj> itr = opA.obj.locals.iterator();
@@ -520,8 +521,12 @@ public final class ParserImpl extends Parser {
         while (firstOfExpr.contains(sym)){
             Operand opEx = Expr();
             Obj par = null;
-            if(itr.hasNext()){par = itr.next();}
+            if(itr.hasNext()){
+                par = itr.next();
+                objVar = par;
+            }
             code.load(opEx);
+
 
             if(par != null && !opEx.type.assignableTo(par.type)){
                 error(Errors.Message.PARAM_TYPE);
@@ -542,7 +547,7 @@ public final class ParserImpl extends Parser {
         if(sym == rpar && opA.obj.hasVarArg) {idx++;}
 
         if(sym == hash){    // has Vararg ?
-            VarArgs();
+            VarArgs(objVar);
             idx++;
         }
 
@@ -566,15 +571,32 @@ public final class ParserImpl extends Parser {
     }
 
     // VarArgs = "#" number [ Expr { "," Expr } ].
-    private void VarArgs(){
+//        int parsedVarArgs = 0;
+//        for (;;) {
+//        Generate dup // to duplicate array address; estack: "..., arr, arr"
+//        Load parsedVarArgs // as array index; estack: "..., arr, arr, index"
+//        Expr();
+//        Check that expression has correct type
+//        Load expression // estack: "..., arr, arr, index, val"
+//        Store into array // estack: "..., arr"
+//        Break if no more var args
+//        }
+    private void VarArgs(Obj objVar){
         check(hash);
         check(number);
+        final int arrSize = t.val;
+
+
+        Operand varArgOp;
+        int parsedVarArgs = 0;
         if(firstOfExpr.contains(sym)){
-            Expr();
+            varArgOp = Expr();
+            parsedVarArgs++;
             for(;;){
                 if(sym == comma){
                     scan();
-                    Expr();
+                    varArgOp = Expr();
+                    parsedVarArgs++;
                 }else{
                     break;
                 }
