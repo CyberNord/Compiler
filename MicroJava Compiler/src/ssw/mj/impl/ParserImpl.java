@@ -4,13 +4,16 @@ import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.Scanner;
 import ssw.mj.Token.Kind;
+import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Code.OpCode;
+import ssw.mj.codegen.Label;
 import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Obj;
 import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
 import java.util.EnumSet;
+import java.util.Iterator;
 
 import static ssw.mj.Errors.Message.*;
 import static ssw.mj.Token.Kind.*;
@@ -39,6 +42,8 @@ public final class ParserImpl extends Parser {
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
     private static final int RESET_VAL = 0;
+
+    private  Obj currMeth;
 
     /**
      * Starts the analysis.
@@ -177,7 +182,7 @@ public final class ParserImpl extends Parser {
 
         check(ident);
         String methodName = t.str;
-        Obj currMeth = tab.insert(Obj.Kind.Meth, methodName, type);
+        currMeth = tab.insert(Obj.Kind.Meth, methodName, type);
         currMeth.adr = code.pc;
         check(lpar);
         tab.openScope();
@@ -215,7 +220,7 @@ public final class ParserImpl extends Parser {
             code.put(tab.curScope.nVars());
         }
 
-        Block();
+        Block(null);
 
         currMeth.locals = tab.curScope.locals();
 
@@ -266,12 +271,12 @@ public final class ParserImpl extends Parser {
     }
 
     // Block = "{" { Statement } "}".
-    private void Block(){
+    private void Block(Label breakLabel){
         check(lbrace);
         // only Enter if there is no current error case active
         if(successfulScans > RESET_VAL) {
             while (sym != eof && sym != rbrace) {
-                Statement();
+                Statement(breakLabel);
                 // moved recover inside due advice of tutor
             }
         }
@@ -287,7 +292,7 @@ public final class ParserImpl extends Parser {
     //           | "print" "(" Expr [ "," number ] ")" ";"
     //           | Block
     //           | ";".
-    private void Statement(){
+    private void Statement(Label breakLabel){
         Operand opA;
         switch(sym){
 
@@ -325,7 +330,9 @@ public final class ParserImpl extends Parser {
 
                     // ActPars
                 }else if(sym == lpar){
-                    ActPars();
+                    ActPars(opA);
+                    code.call(opA);
+
 
                     // "++" | "--"
                 }else if(firstOfQuickop.contains(sym)){   // (mminus,pplus)
@@ -350,33 +357,62 @@ public final class ParserImpl extends Parser {
             case if_:
                 scan();
                 check(lpar);
-                Condition();
+                opA = Condition();
+                code.fJump(opA);
+                opA.tLabel.here();
                 check(rpar);
-                Statement();
+                Statement(breakLabel);
                 if(sym == else_){
                     scan();
-                    Statement();
+                    LabelImpl endIf = new LabelImpl(code);
+                    code.jump(endIf);
+                    opA.fLabel.here();
+                    Statement(breakLabel);
+                    endIf.here();
+                }else{
+                    opA.fLabel.here();
                 }
                 break;
 
             case while_:
                 scan();
                 check(lpar);
-                Condition();
+                LabelImpl top = new LabelImpl(code);
+                top.here();
+                opA = Condition();
+                code.fJump(opA);
+                opA.tLabel.here();
                 check(rpar);
-                Statement();
+                Statement(opA.fLabel);
+                code.jump(top);
+                opA.fLabel.here();
                 break;
 
             case break_:
                 scan();
+                if(breakLabel == null){
+                    error(NO_LOOP);
+                }else{
+                    code.jump(breakLabel);
+                }
                 check(semicolon);
                 break;
 
             case return_:
                 scan();
                 if(firstOfExpr.contains(sym)){
-                    Expr();
+                    // void method must not return a value
+                    if(currMeth.type == Tab.noType)error(RETURN_VOID);
+                    opA = Expr();       // return value
+                    // check for correct return value
+                    if(currMeth.type.compatibleWith(opA.type)) {
+                        code.load(opA);
+                    }else{
+                        error(RETURN_TYPE);
+                    }
                 }
+                code.put(OpCode.exit);
+                code.put(OpCode.return_);
                 check(semicolon);
                 break;
 
@@ -407,7 +443,7 @@ public final class ParserImpl extends Parser {
                 break;
 
             case lbrace:
-                Block();
+                Block(breakLabel);
                 break;
 
             case semicolon:
@@ -441,22 +477,42 @@ public final class ParserImpl extends Parser {
     }
 
     // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs ] ")".
-    private void ActPars(){
+    private void ActPars(Operand opA){
         check(lpar);
-        if(firstOfExpr.contains(sym)){
-            Expr();
-            for(;;){
-                if(sym == comma){
-                    scan();
-                    Expr();
-                }else{
-                    break;
-                }
+
+        if(opA.kind != Operand.Kind.Meth) {
+            error(Errors.Message.NO_METH);
+            return;     // exit ActPars
+        }
+
+        int idx = 0;
+        Iterator<Obj> itr = opA.obj.locals.iterator();
+
+        while (firstOfExpr.contains(sym)){
+            Operand opEx = Expr();
+            Obj par = null;
+            if(itr.hasNext()){par = itr.next();}
+            code.load(opEx);
+
+            if(par != null && !opEx.type.assignableTo(par.type)){
+                error(Errors.Message.PARAM_TYPE);
+            }
+            idx++;
+
+            if(idx > opA.obj.nPars){
+                error(Errors.Message.MORE_ACTUAL_PARAMS);
+            }
+            if(sym == comma){
+                scan();
+            }else{      // break out of the while
+                break;
             }
         }
-        if(sym == hash){
-            VarArgs(); // next HÜ
+
+        if(sym == hash){    // has Vararg ?
+            VarArgs();
         }
+
         check(rpar);
     }
 
@@ -479,45 +535,68 @@ public final class ParserImpl extends Parser {
     }
 
     // Condition = CondTerm { "||" CondTerm }.
-    private void Condition() {
-        CondTerm();
+    private Operand Condition() {
+        Operand opA = CondTerm();
         for (;;) {
             if (sym == or) {
+                code.tJump(opA);
                 scan();
-                CondTerm();
+                opA.fLabel.here();
+                Operand opB = CondTerm();
+                opA.fLabel = opB.fLabel;
+                opA.op = opB.op;
             } else {
                 break;
             }
         }
+        return opA;
     }
 
     // CondTerm = CondFact { "&&" CondFact }.
-    private void CondTerm(){
-        CondFact();
+    private Operand CondTerm(){
+        Operand opA = CondFact();
         for (;;) {
             if (sym == and) {
+                code.fJump(opA);
                 scan();
-                CondFact();
+                Operand opB = CondFact();
+                opA.op = opB.op;
             } else {
                 break;
             }
         }
+        return opA;
     }
 
     // CondFact = Expr Relop Expr.
-    private void CondFact(){
-        Expr();
-        Relop();
-        Expr();
+    private Operand CondFact(){
+        Operand opA = Expr();
+        code.load(opA);
+        Code.CompOp compOp = Relop();   // eq, ne, lt, le, gt, ge
+        Operand opB =Expr();
+        code.load(opB);
+        // TODO CondFact Error handling
+        if (!opA.type.compatibleWith(opB.type)) {
+            error(INCOMP_TYPES);
+        }
+        return new Operand(compOp, code);
     }
 
     // Relop = "==" | "!=" | ">" | ">=" | "<" | "<=".
-    private void Relop(){
+    private Code.CompOp Relop(){
         if(firstOfRelop.contains(sym)){
-            scan();
+            switch (sym){
+                case eql: scan(); return Code.CompOp.eq;
+                case neq: scan(); return Code.CompOp.ne;
+                case gtr: scan(); return Code.CompOp.gt;
+                case geq: scan(); return Code.CompOp.ge;
+                case lss: scan(); return Code.CompOp.lt;
+                case leq: scan(); return Code.CompOp.le;
+            }
         }else{
             error(REL_OP);
         }
+        return Code.CompOp.eq;
     }
 
     // Expr = [ "–" ] Term { Addop Term }.
@@ -585,7 +664,7 @@ public final class ParserImpl extends Parser {
                     opA = Designator();
                     if(sym == lpar){
                         if (opA.obj.type == Tab.noType){error(INVALID_CALL);}
-                        ActPars();
+                        ActPars(opA);
                         opA.type = opA.obj.type;
                         opA.kind = Operand.Kind.Stack;
                     }
