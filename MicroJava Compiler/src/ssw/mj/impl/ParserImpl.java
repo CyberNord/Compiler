@@ -479,26 +479,40 @@ public final class ParserImpl extends Parser {
     // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs ] ")".
     private void ActPars(Operand opA){
         check(lpar);
+
         if(opA.kind != Operand.Kind.Meth) {
             error(Errors.Message.NO_METH);
-            return;
+            return;     // exit ActPars
         }
-        int countPars = 0;
+
+        int idx = 0;
         Iterator<Obj> itr = opA.obj.locals.iterator();
-        if(firstOfExpr.contains(sym)){
-            Expr();
-            for(;;){
-                if(sym == comma){
-                    scan();
-                    Expr();
-                }else{
-                    break;
-                }
+
+        while (firstOfExpr.contains(sym)){
+            Operand opEx = Expr();
+            Obj par = null;
+            if(itr.hasNext()){par = itr.next();}
+            code.load(opEx);
+
+            if(par != null && !opEx.type.assignableTo(par.type)){
+                error(Errors.Message.PARAM_TYPE);
+            }
+            idx++;
+
+            if(idx > opA.obj.nPars){
+                error(Errors.Message.MORE_ACTUAL_PARAMS);
+            }
+            if(sym == comma){
+                scan();
+            }else{      // break out of the while
+                break;
             }
         }
-        if(sym == hash){
-            VarArgs(); // next HÜ
+
+        if(sym == hash){    // has Vararg ?
+            VarArgs();
         }
+
         check(rpar);
     }
 
@@ -582,8 +596,7 @@ public final class ParserImpl extends Parser {
         }else{
             error(REL_OP);
         }
-        // TODO Relop() null as Error return value correct?
-        return null;
+        return Code.CompOp.eq;
     }
 
     // Expr = [ "–" ] Term { Addop Term }.
