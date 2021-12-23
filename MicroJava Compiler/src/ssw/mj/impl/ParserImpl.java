@@ -309,8 +309,10 @@ public final class ParserImpl extends Parser {
                     }
 
                     // contains check if duplication is even needed
-                    if(opCodeAss != OpCode.store && (opA.kind == Operand.Kind.Fld ||opA.kind == Operand.Kind.Elem)) {
-                        code.duplicate(opA);
+                    if(opCodeAss != OpCode.store ) {
+                        if(opA.kind == Operand.Kind.Fld || opA.kind == Operand.Kind.Elem) {
+                            code.duplicate(opA);
+                        }
                         code.loadOp(opA);
                     }
 
@@ -325,7 +327,13 @@ public final class ParserImpl extends Parser {
                             error(INCOMP_TYPES);
                         }
                     }else{
-                        code.doBasicArithmetic(opA, opCodeAss, opB);    // (add, sub, mul, div, rem)
+                        //code.doBasicArithmetic(opA, opCodeAss, opB);    // (add, sub, mul, div, rem)
+                        if (opA.type != Tab.intType || opB.type != Tab.intType){
+                            error(Errors.Message.NO_INT_OP);
+                        }
+                        code.load(opB);
+                        code.put(opCodeAss);
+                        code.store(opA);
                     }
 
                     // ActPars
@@ -419,7 +427,20 @@ public final class ParserImpl extends Parser {
             case read:
                 scan();
                 check(lpar);
-                code.doReadOp(Designator());            // read Operation in CodeImpl
+//                code.doReadOp(Designator());            // read Operation in CodeImpl
+                Operand readOp = Designator();
+                if(readOp.type.kind == Struct.Kind.Int){
+                    code.put(OpCode.read);
+//                    code.assign(readOp,new Operand(Tab.intType));
+                    code.store(readOp);
+                }else if(readOp.type.kind == Struct.Kind.Char){
+                    code.put(OpCode.bread);
+//                    code.assign(readOp,new Operand(Tab.charType));
+                    code.store(readOp);
+                }
+                if(readOp.type.kind != Struct.Kind.Char && readOp.type.kind != Struct.Kind.Int){
+                    error(READ_VALUE);
+                }
                 check(rpar);
                 check(semicolon);
                 break;
@@ -437,7 +458,14 @@ public final class ParserImpl extends Parser {
                     check(number);
                     width = t.val;
                 }
-                code.doPrintOp(printOp, width);         // print Operation in CodeImpl
+//                code.doPrintOp(printOp, width);         // print Operation in CodeImpl
+                code.load(printOp);
+                code.loadConst(width);
+                if(printOp.type.kind == Struct.Kind.Int){
+                    code.put(OpCode.print);
+                }else if(printOp.type.kind == Struct.Kind.Char){
+                    code.put(OpCode.bprint);
+                }
                 check(rpar);
                 check(semicolon);
                 break;
@@ -476,7 +504,7 @@ public final class ParserImpl extends Parser {
         return code;
     }
 
-    // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs ] ")".
+     // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs ] ")".
     private void ActPars(Operand opA){
         check(lpar);
 
@@ -484,15 +512,21 @@ public final class ParserImpl extends Parser {
             error(Errors.Message.NO_METH);
             return;     // exit ActPars
         }
+        Obj objVar = null;
 
         int idx = 0;
         Iterator<Obj> itr = opA.obj.locals.iterator();
 
+        int opParams = opA.obj.nPars;
         while (firstOfExpr.contains(sym)){
             Operand opEx = Expr();
             Obj par = null;
-            if(itr.hasNext()){par = itr.next();}
+            if(itr.hasNext()){
+                par = itr.next();
+                objVar = par;
+            }
             code.load(opEx);
+
 
             if(par != null && !opEx.type.assignableTo(par.type)){
                 error(Errors.Message.PARAM_TYPE);
@@ -509,24 +543,60 @@ public final class ParserImpl extends Parser {
             }
 
         }
+        // empty VarArg
+        if(sym == rpar && opA.obj.hasVarArg) {idx++;}
 
         if(sym == hash){    // has Vararg ?
-            VarArgs();
+            VarArgs(objVar);
+            idx++;
         }
 
-        check(rpar);
+        // TODO ActPars() make better..
+        if(sym != rpar) {
+            check(rpar);
+            if (idx > opParams) {
+                error(MORE_ACTUAL_PARAMS);
+            } else if (idx < opParams) {
+                error(LESS_ACTUAL_PARAMS);
+            }
+        }else {
+            if (idx > opParams) {
+                error(MORE_ACTUAL_PARAMS);
+            } else if (idx < opParams) {
+                error(LESS_ACTUAL_PARAMS);
+            }
+            check(rpar);
+        }
+
     }
 
     // VarArgs = "#" number [ Expr { "," Expr } ].
-    private void VarArgs(){
+//        int parsedVarArgs = 0;
+//        for (;;) {
+//        Generate dup // to duplicate array address; estack: "..., arr, arr"
+//        Load parsedVarArgs // as array index; estack: "..., arr, arr, index"
+//        Expr();
+//        Check that expression has correct type
+//        Load expression // estack: "..., arr, arr, index, val"
+//        Store into array // estack: "..., arr"
+//        Break if no more var args
+//        }
+    private void VarArgs(Obj objVar){
         check(hash);
         check(number);
+        final int arrSize = t.val;
+
+
+        Operand varArgOp;
+        int parsedVarArgs = 0;
         if(firstOfExpr.contains(sym)){
-            Expr();
+            varArgOp = Expr();
+            parsedVarArgs++;
             for(;;){
                 if(sym == comma){
                     scan();
-                    Expr();
+                    varArgOp = Expr();
+                    parsedVarArgs++;
                 }else{
                     break;
                 }
@@ -692,7 +762,19 @@ public final class ParserImpl extends Parser {
                     if(sym == lbrack){
                         scan();
                         Operand opB = Expr();
-                        opA = code.getArray(opB, objType );      // current is identified as Array
+//                        opA = code.getArray(opB, objType );      // current is identified as Array
+
+                        if (opB.type.kind != Struct.Kind.Int){error(ARRAY_SIZE); }
+                        code.load(opB);
+                        code.put(OpCode.newarray);
+                        if(objType == Tab.charType){
+                            code.put(0);
+                        }else{
+                            code.put(1);
+                        }
+                        opA = new Operand(new StructImpl(objType));
+                        opA.val = opB.val;
+
                         check(rbrack);
                     }else {
                         if(obj.kind != Obj.Kind.Type ||  objType.kind != Struct.Kind.Class){

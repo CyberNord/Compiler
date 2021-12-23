@@ -169,6 +169,7 @@ public final class CodeImpl extends Code {
             put(OpCode.call);
             put2(operand.adr - (pc - 1));
         }
+        operand.kind = Operand.Kind.Stack;
     }
 
     // normal Jump
