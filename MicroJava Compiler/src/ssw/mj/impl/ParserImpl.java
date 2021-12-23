@@ -476,7 +476,7 @@ public final class ParserImpl extends Parser {
         return code;
     }
 
-    // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs ] ")".
+     // ActPars = "(" [ Expr { "," Expr } ] [ VarArgs ] ")".
     private void ActPars(Operand opA){
         check(lpar);
 
@@ -488,6 +488,7 @@ public final class ParserImpl extends Parser {
         int idx = 0;
         Iterator<Obj> itr = opA.obj.locals.iterator();
 
+        int opParams = opA.obj.nPars;
         while (firstOfExpr.contains(sym)){
             Operand opEx = Expr();
             Obj par = null;
@@ -509,12 +510,31 @@ public final class ParserImpl extends Parser {
             }
 
         }
+        // empty VarArg
+        if(sym == rpar && opA.obj.hasVarArg) {idx++;}
 
         if(sym == hash){    // has Vararg ?
             VarArgs();
+            idx++;
         }
 
-        check(rpar);
+        // TODO ActPars() make better..
+        if(sym != rpar) {
+            check(rpar);
+            if (idx > opParams) {
+                error(MORE_ACTUAL_PARAMS);
+            } else if (idx < opParams) {
+                error(LESS_ACTUAL_PARAMS);
+            }
+        }else {
+            if (idx > opParams) {
+                error(MORE_ACTUAL_PARAMS);
+            } else if (idx < opParams) {
+                error(LESS_ACTUAL_PARAMS);
+            }
+            check(rpar);
+        }
+
     }
 
     // VarArgs = "#" number [ Expr { "," Expr } ].
