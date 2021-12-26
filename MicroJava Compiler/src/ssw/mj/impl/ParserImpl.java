@@ -564,11 +564,11 @@ public final class ParserImpl extends Parser {
         // TODO ActPars() make better...
         if(sym != rpar) {
             check(rpar);
-            if (idx > opParams) {
-                error(MORE_ACTUAL_PARAMS);
-            } else if (idx < opParams) {
-                error(LESS_ACTUAL_PARAMS);
-            }
+//            if (idx > opParams) {
+//                error(MORE_ACTUAL_PARAMS);
+//            } else if (idx < opParams) {
+//                error(LESS_ACTUAL_PARAMS);
+//            }
         }else {
             if (idx > opParams) {
                 error(INVALID_VARARG_CALL);
@@ -672,9 +672,12 @@ public final class ParserImpl extends Parser {
         Code.CompOp compOp = Relop();   // eq, ne, lt, le, gt, ge
         Operand opB =Expr();
         code.load(opB);
-        // TODO CondFact Error handling
+        //TODO CondFact() make better
+        boolean isEqualityCheck = compOp == Code.CompOp.eq || compOp == Code.CompOp.ne;
         if (!opA.type.compatibleWith(opB.type)) {
             error(INCOMP_TYPES);
+        }else if (!isEqualityCheck && (opA.type.kind == Struct.Kind.Arr || opA.type.kind == Struct.Kind.Class)) {
+            error(Errors.Message.EQ_CHECK);
         }
         return new Operand(compOp, code);
     }
