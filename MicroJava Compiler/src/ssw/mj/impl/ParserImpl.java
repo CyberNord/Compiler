@@ -554,10 +554,13 @@ public final class ParserImpl extends Parser {
 
         }
         // empty VarArg
-        if(sym == rpar && opA.obj.hasVarArg) {idx++;}
+        if(sym == rpar && opA.obj.hasVarArg) {
+            idx++;
+            // TODO ActPars(): create empty array VarArgs
+        }
 
         if(sym == hash){    // has Vararg ?
-            VarArgs(opA.obj);
+                VarArgs(opA.obj);
             idx++;
         }
 
@@ -628,6 +631,9 @@ public final class ParserImpl extends Parser {
                 }
             }
             if(idx < arrSize){error(LESS_ACTUAL_VARARGS);}
+
+        } else if(arrSize == 0){
+            // TODO VarArgs(): create empty array VarArgs
         }
     }
 
