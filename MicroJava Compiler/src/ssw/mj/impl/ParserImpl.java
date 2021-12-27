@@ -553,6 +553,8 @@ public final class ParserImpl extends Parser {
             }
 
         }
+        boolean hash_ = false;          // use for an error case
+
         // empty VarArg
         if(sym == rpar && opA.obj.hasVarArg) {      // TODO schöner machen
             idx++;
@@ -563,24 +565,20 @@ public final class ParserImpl extends Parser {
             }else{
                 code.put(1);
             }
-        }
-
-        if(sym == hash){    // has Vararg ?
+        } else if(sym == hash){    // has Vararg ?
+            hash_ = true;
             VarArgs(opA.obj);
             idx++;
         }
 
         // TODO ActPars() make better...
         if(sym != rpar) {
-            check(rpar);
-//            if (idx > opParams) {
-//                error(MORE_ACTUAL_PARAMS);
-//            } else if (idx < opParams) {
-//                error(LESS_ACTUAL_PARAMS);
-//            }
+            check(rpar);        // will throw error
         }else {
-            if (idx > opParams) {
+            if (!opA.obj.hasVarArg && hash_) {
                 error(INVALID_VARARG_CALL);
+            }else if (idx > opParams) {
+                error(MORE_ACTUAL_PARAMS);
             } else if (idx < opParams) {
                 error(LESS_ACTUAL_PARAMS);
             }
