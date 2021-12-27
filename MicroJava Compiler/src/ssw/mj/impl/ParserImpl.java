@@ -539,7 +539,7 @@ public final class ParserImpl extends Parser {
             code.load(opEx);
 
             if(par != null && !opEx.type.assignableTo(par.type)){
-                error(Errors.Message.PARAM_TYPE);
+                error(PARAM_TYPE);
             }
             idx++;
 
@@ -554,13 +554,19 @@ public final class ParserImpl extends Parser {
 
         }
         // empty VarArg
-        if(sym == rpar && opA.obj.hasVarArg) {
+        if(sym == rpar && opA.obj.hasVarArg) {      // TODO schöner machen
             idx++;
-            // TODO ActPars(): create empty array VarArgs
+            code.loadConst(0);
+            code.put(OpCode.newarray);
+            if(opA.obj.locals.get(opA.obj.nPars-1).type == Tab.charType){
+                code.put(0);
+            }else{
+                code.put(1);
+            }
         }
 
         if(sym == hash){    // has Vararg ?
-                VarArgs(opA.obj);
+            VarArgs(opA.obj);
             idx++;
         }
 
@@ -591,49 +597,44 @@ public final class ParserImpl extends Parser {
         final int arrSize = t.val;           // vararg size
         Operand varArgOp;
         int idx = 0;                        // how many varargs are parsed
-        boolean createArray = true;         // create a new array y/n
+        StructImpl varArgType = objVar.locals.get(objVar.nPars-1).type.elemType;
+
+        code.loadConst(arrSize);
+        code.put(OpCode.newarray);
+        if(varArgType == Tab.charType){
+            code.put(0);
+        }else{
+            code.put(1);
+        }
 
         if(firstOfExpr.contains(sym)){
-
             for(;;){
                 varArgOp = Expr();
 
-                if(createArray){
-                    code.put(OpCode.newarray);
-                    if(varArgOp.type == Tab.charType){
-                        code.put(0);
-                    }else{
-                        code.put(1);
-                    }
-                    code.put2(arrSize);
-                    createArray = false;
-                }
                 code.put(OpCode.dup);
                 code.loadConst(idx);
 
-                if(objVar.type != currMeth.type){       // TODO VarArg(..) wrong error checking and position .. =/
+                if(varArgType != null && !varArgOp.type.compatibleWith(varArgType)){
                     error(PARAM_TYPE);
                 }
 
                 code.load(varArgOp);
 
-                if(objVar.type == Tab.charType){
+                if(varArgType == Tab.charType){
                     code.put(OpCode.bastore);
                 }else{
                     code.put(OpCode.astore);
                 }
                 idx++;
-                if(idx > arrSize){error(MORE_ACTUAL_VARARGS);}
                 if(sym == comma){
                     scan();
                 }else{
                     break;
                 }
             }
+            if(idx > arrSize){error(MORE_ACTUAL_VARARGS);}
             if(idx < arrSize){error(LESS_ACTUAL_VARARGS);}
 
-        } else if(arrSize == 0){
-            // TODO VarArgs(): create empty array VarArgs
         }
     }
 

@@ -1,8 +1,8 @@
 package ssw.mj.test;
 
-import static ssw.mj.Errors.Message.*;
-
 import org.junit.Test;
+
+import static ssw.mj.Errors.Message.*;
 
 /**
  * Test cases for the examples from the lab sessions 8 and 9.
@@ -249,7 +249,7 @@ public class CodeGenerationTest extends CompilerTestCaseSupport {
 		parseAndVerify();
 	}
 
-	@Test
+	@Test	// Todo uncomment fib test
 	public void fib() {
 		init("program A" + LF + //
 				"{" + LF + //

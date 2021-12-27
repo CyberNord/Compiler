@@ -873,81 +873,81 @@ public class SymbolTableTest extends CompilerTestCaseSupport {
 		parseAndVerify();
 	}
 
-//	// TODO uncomment
-//	@Test
-//	public void tooManyLocals2() {
-//		StringBuilder sb = new StringBuilder();
-//		for (int i = 0; i < 126; i++) {
-//			if (i > 0) {
-//				sb.append(",");
-//			}
-//			sb.append("i");
-//			sb.append(i);
-//		}
-//		String names = sb.toString();
-//
-//		init("program Test {" + LF + //
-//				"  void foo(int x)" + LF + //
-//				"    int " + names + ";" + LF + //
-//				"    int error;" + LF + //
-//				"  {" + LF + //
-//				"  }" + LF + //
-//				"  void main()" + LF + //
-//				"  {}" + LF + //
-//				"}");
-//		expectError(5, 3, TOO_MANY_LOCALS);
-//		parseAndVerify();
-//	}
-//
-//// TODO uncomment
-//	@Test
-//	public void tooManyGlobals() {
-//		StringBuilder sb = new StringBuilder();
-//		for (int i = 0; i < 32767; i++) {
-//			if (i > 0) {
-//				sb.append(",");
-//			}
-//			sb.append("i");
-//			sb.append(i);
-//		}
-//		String names = sb.toString();
-//
-//		init("program Test" + LF + //
-//				"  int " + names + ";" + LF + //
-//				"  int error;" + LF + //
-//				"{" + LF + //
-//				"  void main() { }" + LF + //
-//				"}");
-//		expectError(4, 1, TOO_MANY_GLOBALS);
-//
-//		parseAndVerify();
-//	}
-//
-//	// TODO uncomment
-//	@Test
-//	public void tooManyFields() {
-//		StringBuilder sb = new StringBuilder();
-//		for (int i = 0; i < 32767; i++) {
-//			if (i > 0) {
-//				sb.append(",");
-//			}
-//			sb.append("i");
-//			sb.append(i);
-//		}
-//		String names = sb.toString();
-//
-//		init("program Test" + LF + //
-//				"  class C {" + LF + //
-//				"    int " + names + ";" + LF + //
-//				"    int error;" + LF + //
-//				"  }" + LF + //
-//				"{" + LF + //
-//				"  void main() { }" + LF + //
-//				"}");
-//		expectError(5, 3, TOO_MANY_FIELDS);
-//
-//		parseAndVerify();
-//	}
+	// TODO uncomment
+	@Test
+	public void tooManyLocals2() {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 126; i++) {
+			if (i > 0) {
+				sb.append(",");
+			}
+			sb.append("i");
+			sb.append(i);
+		}
+		String names = sb.toString();
+
+		init("program Test {" + LF + //
+				"  void foo(int x)" + LF + //
+				"    int " + names + ";" + LF + //
+				"    int error;" + LF + //
+				"  {" + LF + //
+				"  }" + LF + //
+				"  void main()" + LF + //
+				"  {}" + LF + //
+				"}");
+		expectError(5, 3, TOO_MANY_LOCALS);
+		parseAndVerify();
+	}
+
+// TODO uncomment
+	@Test
+	public void tooManyGlobals() {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 32767; i++) {
+			if (i > 0) {
+				sb.append(",");
+			}
+			sb.append("i");
+			sb.append(i);
+		}
+		String names = sb.toString();
+
+		init("program Test" + LF + //
+				"  int " + names + ";" + LF + //
+				"  int error;" + LF + //
+				"{" + LF + //
+				"  void main() { }" + LF + //
+				"}");
+		expectError(4, 1, TOO_MANY_GLOBALS);
+
+		parseAndVerify();
+	}
+
+	// TODO uncomment
+	@Test
+	public void tooManyFields() {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < 32767; i++) {
+			if (i > 0) {
+				sb.append(",");
+			}
+			sb.append("i");
+			sb.append(i);
+		}
+		String names = sb.toString();
+
+		init("program Test" + LF + //
+				"  class C {" + LF + //
+				"    int " + names + ";" + LF + //
+				"    int error;" + LF + //
+				"  }" + LF + //
+				"{" + LF + //
+				"  void main() { }" + LF + //
+				"}");
+		expectError(5, 3, TOO_MANY_FIELDS);
+
+		parseAndVerify();
+	}
 
 
 	@Test
