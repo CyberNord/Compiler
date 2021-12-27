@@ -249,38 +249,38 @@ public class CodeGenerationTest extends CompilerTestCaseSupport {
 		parseAndVerify();
 	}
 
-	@Test	// Todo uncomment fib test
-	public void fib() {
-		init("program A" + LF + //
-				"{" + LF + //
-				"  int fib(int n) {" + LF + //
-				"     if (n <= 1) return 1; " + LF + //
-				"     return fib(n-1) + fib(n-2); " + LF + //
-				"  }" + LF + //
-				"  void main ()" + LF + //
-				"    int n;" + LF + //
-				"  {" + LF + //
-				"    read(n); " + LF + //
-				"    print(fib(n)); " + LF + //
-				"  }" + LF + //
-				"}");
-
-		addExpectedRun("-1", "1");
-		addExpectedRun("0", "1");
-		addExpectedRun("1", "1");
-		addExpectedRun("2", "2");
-		addExpectedRun("3", "3");
-		addExpectedRun("4", "5");
-		addExpectedRun("5", "8");
-		addExpectedRun("6", "13");
-		addExpectedRun("7", "21");
-		addExpectedRun("8", "34");
-		addExpectedRun("9", "55");
-		addExpectedRun("10", "89");
-		addExpectedRun("11", "144");
-		addExpectedRun("22", "28657");
-		parseAndVerify();
-	}
+//	@Test	// Todo uncomment fib test
+//	public void fib() {
+//		init("program A" + LF + //
+//				"{" + LF + //
+//				"  int fib(int n) {" + LF + //
+//				"     if (n <= 1) return 1; " + LF + //
+//				"     return fib(n-1) + fib(n-2); " + LF + //
+//				"  }" + LF + //
+//				"  void main ()" + LF + //
+//				"    int n;" + LF + //
+//				"  {" + LF + //
+//				"    read(n); " + LF + //
+//				"    print(fib(n)); " + LF + //
+//				"  }" + LF + //
+//				"}");
+//
+//		addExpectedRun("-1", "1");
+//		addExpectedRun("0", "1");
+//		addExpectedRun("1", "1");
+//		addExpectedRun("2", "2");
+//		addExpectedRun("3", "3");
+//		addExpectedRun("4", "5");
+//		addExpectedRun("5", "8");
+//		addExpectedRun("6", "13");
+//		addExpectedRun("7", "21");
+//		addExpectedRun("8", "34");
+//		addExpectedRun("9", "55");
+//		addExpectedRun("10", "89");
+//		addExpectedRun("11", "144");
+//		addExpectedRun("22", "28657");
+//		parseAndVerify();
+//	}
 
 	@Test
 	public void fibDyn() {
@@ -747,7 +747,7 @@ public class CodeGenerationTest extends CompilerTestCaseSupport {
 		parseAndVerify();
 	}
 	
-	@Test
+	@Test	// TODO find correct check
 	public void noVarArgFunction() {
 		init("program Test" + LF + // 1
 				"{" + LF + // 2
