@@ -1,6 +1,5 @@
 package ssw.mj.impl;
 
-import ssw.mj.Errors;
 import ssw.mj.Parser;
 import ssw.mj.codegen.Code;
 import ssw.mj.codegen.Label;
@@ -8,7 +7,8 @@ import ssw.mj.codegen.Operand;
 import ssw.mj.symtab.Struct;
 import ssw.mj.symtab.Tab;
 
-import static ssw.mj.Errors.Message.*;
+import static ssw.mj.Errors.Message.NO_VAL;
+import static ssw.mj.Errors.Message.NO_VAR;
 import static ssw.mj.codegen.Code.OpCode.*;
 
 
@@ -18,7 +18,7 @@ public final class CodeImpl extends Code {
         super(p);
     }
 
-    // TODO Exercise 5 - 6: implementation of code generation
+    // DONE Exercise: implementation of code generation
 
     // source: exercise slides
     public void load(Operand opA) {
@@ -202,12 +202,8 @@ public final class CodeImpl extends Code {
         }
     }
 
-    // TODO errors should be outside
     // (add, sub, mul, div, rem)
     public void doBasicArithmetic(Operand opA, OpCode opCodeAss, Operand opB) {
-        if (opA.type != Tab.intType || opB.type != Tab.intType){
-            parser.error(Errors.Message.NO_INT_OP);
-        }
         load(opB);
         put(opCodeAss);
         store(opA);
@@ -222,25 +218,16 @@ public final class CodeImpl extends Code {
             put(OpCode.bread);
             assign(readOp,new Operand(Tab.charType));
         }
-        if(readOp.type.kind != Struct.Kind.Char && readOp.type.kind != Struct.Kind.Int){
-            parser.error(READ_VALUE);
-        }
     }
 
     //print
     public void doPrintOp(Operand printOp, int width) {
         load(printOp);
         loadConst(width);
-        if(printOp.type.kind == Struct.Kind.Int){
-            put(OpCode.print);
-        }else if(printOp.type.kind == Struct.Kind.Char){
-            put(OpCode.bprint);
-        }
     }
 
     // array
     public Operand getArray(Operand opB, StructImpl objType) {
-        if (opB.type.kind != Struct.Kind.Int){parser.error(ARRAY_SIZE); }
         load(opB);
         put(OpCode.newarray);
         if(objType == Tab.charType){
@@ -253,4 +240,15 @@ public final class CodeImpl extends Code {
         return opA;
     }
 
+    //exit
+    public void exitDefault(){
+        put(exit);
+        put(return_);
+    }
+
+    //exit trap
+    public void exitTrap(){
+        put(OpCode.trap);
+        put(1);
+    }
 }
