@@ -162,10 +162,9 @@ public final class CodeImpl extends Code {
 
     // call method
     public void call(Operand operand){
-        // TODO change call()
         if (operand.obj == parser.tab.lenObj) {
             put(OpCode.arraylength);
-        } else if(operand.obj != parser.tab.chrObj && operand.obj != parser.tab.ordObj) {
+        } else if( operand.obj != parser.tab.ordObj && operand.obj != parser.tab.chrObj ) {
             put(OpCode.call);
             put2(operand.adr - (pc - 1));
         }
@@ -250,5 +249,16 @@ public final class CodeImpl extends Code {
     public void exitTrap(){
         put(OpCode.trap);
         put(1);
+    }
+
+    // create empty array for vararg
+    public void emptyArray(int val, Operand opMeth) {
+        loadConst(val);
+        put(OpCode.newarray);
+        if(opMeth.obj.locals.get(opMeth.obj.nPars-1).type == Tab.charType){
+            put(0);
+        }else{
+            put(1);
+        }
     }
 }

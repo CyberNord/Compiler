@@ -20,7 +20,7 @@ import static ssw.mj.Token.Kind.*;
 
 public final class ParserImpl extends Parser {
 
-    // TODO Exercise 3 - 6: implementation of parser
+    // DONE Exercise 3 - 6: implementation of parser
     public ParserImpl
     (Scanner scanner) {
         super(scanner);
@@ -528,24 +528,17 @@ public final class ParserImpl extends Parser {
         boolean hash_ = false;          // use for an error case
 
         // empty VarArg
-        if(sym == rpar && opA.obj.hasVarArg) {      // TODO schöner machen
+        if(sym == rpar && opA.obj.hasVarArg) {
             idx++;
-            code.loadConst(0);
-            code.put(OpCode.newarray);
-            if(opA.obj.locals.get(opA.obj.nPars-1).type == Tab.charType){
-                code.put(0);
-            }else{
-                code.put(1);
-            }
+            code.emptyArray(0,opA);
         } else if(sym == hash){    // has Vararg ?
             hash_ = true;
             VarArgs(opA.obj);
             idx++;
         }
 
-        // TODO ActPars() make better...
         if(sym != rpar) {
-            check(rpar);        // will throw error
+            check(rpar);        // will throw an error at this point
         }else {
             if (!opA.obj.hasVarArg && hash_) {
                 error(INVALID_VARARG_CALL);
@@ -647,7 +640,7 @@ public final class ParserImpl extends Parser {
         Operand opA = Expr();
         code.load(opA);
         Code.CompOp compOp = Relop();   // eq, ne, lt, le, gt, ge
-        Operand opB =Expr();
+        Operand opB = Expr();
         code.load(opB);
         //TODO CondFact() make better
         boolean isEqualityCheck = compOp == Code.CompOp.eq || compOp == Code.CompOp.ne;
