@@ -2,8 +2,7 @@ package ssw.mj.test;
 
 import ssw.mj.codegen.Decoder;
 
-public class
-Configuration {
+public class Configuration {
 	/**
 	 * set to true to print expected and actual values of all output (errors,
 	 * tokens, symbol table, code)
