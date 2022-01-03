@@ -637,16 +637,16 @@ public final class ParserImpl extends Parser {
 
     // CondFact = Expr Relop Expr.
     private Operand CondFact(){
+        boolean equal = false;
         Operand opA = Expr();
         code.load(opA);
         Code.CompOp compOp = Relop();   // eq, ne, lt, le, gt, ge
         Operand opB = Expr();
         code.load(opB);
-        //TODO CondFact() make better
-        boolean isEqualityCheck = compOp == Code.CompOp.eq || compOp == Code.CompOp.ne;
+        if (!(compOp != Code.CompOp.eq && compOp != Code.CompOp.ne)) equal = true;
         if (!opA.type.compatibleWith(opB.type)) {
             error(INCOMP_TYPES);
-        }else if (!isEqualityCheck && (opA.type.kind == Struct.Kind.Arr || opA.type.kind == Struct.Kind.Class)) {
+        }else if (!equal && (opA.type.kind == Struct.Kind.Arr || opA.type.kind == Struct.Kind.Class)) {
             error(Errors.Message.EQ_CHECK);
         }
         return new Operand(compOp, code);
