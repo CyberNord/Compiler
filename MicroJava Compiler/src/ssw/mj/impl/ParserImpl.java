@@ -31,7 +31,7 @@ public final class ParserImpl extends Parser {
     private final EnumSet<Kind> firstOfExpr =EnumSet.of(minus, ident, number, charConst, new_, lpar);
     private final EnumSet<Kind> firstOfRelop =EnumSet.of(eql, neq, gtr, geq, lss, leq);
     private final EnumSet<Kind> firstOfAddop =EnumSet.of(plus,minus);
-    private final EnumSet<Kind> firstOfQuickop =EnumSet.of(pplus,mminus);
+    private final EnumSet<Kind> firstOfQuick =EnumSet.of(pplus,mminus);
     private final EnumSet<Kind> firstOfMulop =EnumSet.of(times, slash, rem);
 
     // recovery sets for error handling
@@ -42,8 +42,6 @@ public final class ParserImpl extends Parser {
     private int successfulScans = 3;
     private static final int MIN_ERR_DIST = 3;
     private static final int RESET_VAL = 0;
-
-    private  Obj currMeth;
 
     /**
      * Starts the analysis.
@@ -182,7 +180,7 @@ public final class ParserImpl extends Parser {
 
         check(ident);
         String methodName = t.str;
-        currMeth = tab.insert(Obj.Kind.Meth, methodName, type);
+        Obj currMeth = tab.insert(Obj.Kind.Meth, methodName, type);
         currMeth.adr = code.pc;
         check(lpar);
         tab.openScope();
@@ -220,7 +218,7 @@ public final class ParserImpl extends Parser {
             code.put(tab.curScope.nVars());
         }
 
-        Block(null);
+        Block(null, currMeth);
 
         currMeth.locals = tab.curScope.locals();
 
@@ -271,12 +269,12 @@ public final class ParserImpl extends Parser {
     }
 
     // Block = "{" { Statement } "}".
-    private void Block(Label breakLabel){
+    private void Block(Label breakLabel, Obj currMeth){
         check(lbrace);
         // only Enter if there is no current error case active
         if(successfulScans > RESET_VAL) {
             while (sym != eof && sym != rbrace) {
-                Statement(breakLabel);
+                Statement(breakLabel, currMeth);
                 // moved recover inside due advice of tutor
             }
         }
@@ -292,7 +290,7 @@ public final class ParserImpl extends Parser {
     //           | "print" "(" Expr [ "," number ] ")" ";"
     //           | Block
     //           | ";".
-    private void Statement(Label breakLabel){
+    private void Statement(Label breakLabel, Obj currMeth){
         Operand opA;
         switch(sym){
 
@@ -340,7 +338,7 @@ public final class ParserImpl extends Parser {
 
 
                     // "++" | "--"
-                }else if(firstOfQuickop.contains(sym)){   // (mminus,pplus)
+                }else if(firstOfQuick.contains(sym)){   // (mminus,pplus)
                     if(opA.type != Tab.intType){error(NO_INT);}
                     if(opA.obj != null && opA.obj.kind != Obj.Kind.Var){error(NO_VAR);}
                     if(sym == mminus){
@@ -366,13 +364,13 @@ public final class ParserImpl extends Parser {
                 code.fJump(opA);
                 opA.tLabel.here();
                 check(rpar);
-                Statement(breakLabel);
+                Statement(breakLabel, currMeth);
                 if(sym == else_){
                     scan();
                     LabelImpl endIf = new LabelImpl(code);
                     code.jump(endIf);
                     opA.fLabel.here();
-                    Statement(breakLabel);
+                    Statement(breakLabel, currMeth);
                     endIf.here();
                 }else{
                     opA.fLabel.here();
@@ -388,7 +386,7 @@ public final class ParserImpl extends Parser {
                 code.fJump(opA);
                 opA.tLabel.here();
                 check(rpar);
-                Statement(opA.fLabel);
+                Statement(opA.fLabel, currMeth);
                 code.jump(top);
                 opA.fLabel.here();
                 break;
@@ -456,7 +454,7 @@ public final class ParserImpl extends Parser {
                 break;
 
             case lbrace:
-                Block(breakLabel);
+                Block(breakLabel, currMeth);
                 break;
 
             case semicolon:
@@ -593,6 +591,7 @@ public final class ParserImpl extends Parser {
                     break;
                 }
             }
+            // Size error check for VarArgs happens here
             if(idx > arrSize){error(MORE_ACTUAL_VARARGS);}
             if(idx < arrSize){error(LESS_ACTUAL_VARARGS);}
 
