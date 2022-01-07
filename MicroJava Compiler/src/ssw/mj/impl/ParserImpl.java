@@ -571,14 +571,13 @@ public final class ParserImpl extends Parser {
 
         if(firstOfExpr.contains(sym)){
             for(;;){
-                varArgOp = Expr();
 
                 code.put(OpCode.dup);
                 code.loadConst(idx);
 
-                if (varArgType != null && !varArgOp.type.compatibleWith(varArgType)) {
-                    error(PARAM_TYPE);
-                }
+                varArgOp = Expr();
+
+                if (varArgType != null && !varArgOp.type.compatibleWith(varArgType)) { error(PARAM_TYPE); }
 
                 code.load(varArgOp);
 
