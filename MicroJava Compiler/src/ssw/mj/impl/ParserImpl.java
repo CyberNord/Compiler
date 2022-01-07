@@ -510,14 +510,13 @@ public final class ParserImpl extends Parser {
             }
             code.load(opEx);
 
-            if(par != null && !opEx.type.assignableTo(par.type)){
-                error(PARAM_TYPE);
+            if (itr.hasNext() || !opA.obj.hasVarArg) {
+                if(par != null && !opEx.type.assignableTo(par.type)){
+                    error(PARAM_TYPE);
+                }
             }
             idx++;
 
-            if(idx > opA.obj.nPars){
-                error(MORE_ACTUAL_PARAMS);
-            }
             if(sym == comma){
                 scan();
             }else{      // break out of the while
@@ -577,15 +576,15 @@ public final class ParserImpl extends Parser {
                 code.put(OpCode.dup);
                 code.loadConst(idx);
 
-                if(varArgType != null && !varArgOp.type.compatibleWith(varArgType)){
+                if (varArgType != null && !varArgOp.type.compatibleWith(varArgType)) {
                     error(PARAM_TYPE);
                 }
 
                 code.load(varArgOp);
 
-                if(varArgType == Tab.charType){
+                if (varArgType == Tab.charType) {
                     code.put(OpCode.bastore);
-                }else{
+                } else {
                     code.put(OpCode.astore);
                 }
                 idx++;
