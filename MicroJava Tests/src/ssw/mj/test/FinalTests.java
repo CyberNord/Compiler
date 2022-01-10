@@ -58,6 +58,20 @@ public class FinalTests extends CompilerTestCaseSupport {
         parseAndVerify();
     }
 
+    @Test
+    public void globalVar(){
+        String source = "program GlobVar\n" +
+                "int ii;\n" +
+                "{\n" +
+                "void main() {\n" +
+                "ii = 10;\n" +
+                "}\n" +
+                "}";
+        init(source);
+        addExpectedRun("");
+        parseAndVerify();
+    }
+
     final String primsExpected = "2\n" + "3\n" + "5\n" + "7\n" + "11\n" + "13\n" + "17\n" + "19\n" + "23\n" +
             "29\n" + "31\n" + "37\n" + "41\n" + "43\n" + "47\n" + "53\n" + "59\n" + "61\n" + "67\n" + "71\n" +
             "73\n" + "79\n" + "83\n" + "89\n" + "97\n" + "101\n" + "103\n" + "107\n" + "109\n" + "113\n" + "127\n" +
@@ -76,7 +90,7 @@ public class FinalTests extends CompilerTestCaseSupport {
             "971\n" + "977\n" + "983\n" + "991\n" + "997\n";
 
     final String studentExpected ="m[0]=1234567,X\\Y\n" +"m[1]=9090900,Al\n" +"m[2]=9876543,Mr.X\n" + "9876543 Mr.X\n"
-            +"1234567 X\\Y\n" +"9090900 Al";
+            +"1234567 X\\Y\n" +"9090900 Al\n";
 
-    final String testProgramExpected ="1234";
+    final String testProgramExpected ="1234\n";
 }
