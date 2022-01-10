@@ -91,6 +91,7 @@ public final class ParserImpl extends Parser {
         if( tab.curScope.nVars() > MAX_GLOBALS){
             error(TOO_MANY_GLOBALS);
         }
+        code.dataSize = tab.curScope.nVars();
 
         check(lbrace);
         while(sym != rbrace && sym != eof) {
@@ -209,7 +210,7 @@ public final class ParserImpl extends Parser {
         if(tab.curScope.nVars() > MAX_LOCALS) {
             error(Errors.Message.TOO_MANY_LOCALS);
         }
-        code.dataSize = tab.curScope.nVars();
+//        code.dataSize = tab.curScope.nVars();
 
         if (currMeth.kind == Obj.Kind.Meth) {
             currMeth.adr = code.pc;
