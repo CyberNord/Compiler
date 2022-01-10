@@ -51,6 +51,12 @@ public class FinalTests extends CompilerTestCaseSupport {
         parseAndVerify();
     }
 
+    @Test
+    public void testFail() {
+        initFile("Trap.mj");
+//         addExpectedRun(""); //Uncomment to see Trap Error
+        parseAndVerify();
+    }
 
     final String primsExpected = "2\n" + "3\n" + "5\n" + "7\n" + "11\n" + "13\n" + "17\n" + "19\n" + "23\n" +
             "29\n" + "31\n" + "37\n" + "41\n" + "43\n" + "47\n" + "53\n" + "59\n" + "61\n" + "67\n" + "71\n" +
