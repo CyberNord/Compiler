@@ -16,7 +16,7 @@ public final class LabelImpl extends Label {
         fixupList = new ArrayList<>();
     }
 
-    List<Integer> fixupList;
+    private List<Integer> fixupList;
 
     /**
      * Generates code for a jump to this label.
