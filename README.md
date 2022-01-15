@@ -7,7 +7,6 @@ Bewertungen
  - Übung 4: Symbolliste und Fehlerbehandlung	16,67 %	22,50	0–24	 93,75 %	MH
             TabImpl:
                 77: if there is no name(null or "") return noObj
-
             Parser:
                 250: check followers, as there could somewhere be an extra scan after an error -0,5
                 542, 550: you should also synchronize on name that refers to types -1
