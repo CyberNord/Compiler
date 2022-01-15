@@ -1,3 +1,5 @@
+Copyright (c) 2022 CyberNord
+
 Bewertungen
 
  - Übung 2: Scanner	                            16,67 %	24,00	0–24	100,00 %	ok
