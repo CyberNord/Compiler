@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) R.Garstenauer ( CyberNord)   2022, All rights reserved.
+ */
+
 package ssw.mj.impl;
 
 import ssw.mj.Errors;
